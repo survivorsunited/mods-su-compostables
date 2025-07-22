@@ -51,7 +51,7 @@ Farmer villagers will now pick up and compost:
 
 ## 📖 Documentation
 
-Visit our [Wiki](https://survivorsunited.github.io/mods-su-compostables/) for:
+Visit our [Wiki](https://survivorsunited.github.io/mods-su-compostables/docs/intro) for:
 - Complete item list with composting chances
 - Installation guides
 - Usage tips and automation ideas
@@ -61,7 +61,7 @@ Visit our [Wiki](https://survivorsunited.github.io/mods-su-compostables/) for:
 
 - **Bug Reports**: [GitHub Issues](https://github.com/survivorsunited/mods-su-compostables/issues)
 - **Feature Requests**: [GitHub Discussions](https://github.com/survivorsunited/mods-su-compostables/discussions)
-- **Wiki**: [Documentation Site](https://survivorsunited.github.io/mods-su-compostables/)
+- **Wiki**: [Documentation Site](https://survivorsunited.github.io/mods-su-compostables/docs/intro)
 
 ## 📄 License
 

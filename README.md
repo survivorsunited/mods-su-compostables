@@ -9,7 +9,7 @@ A Minecraft Fabric mod that extends composting functionality by making 40+ addit
 
 ## 📖 Documentation
 
-Visit our **[Wiki](https://survivorsunited.github.io/mods-su-compostables/)** for:
+Visit our **[Wiki](https://survivorsunited.github.io/mods-su-compostables/docs/intro)** for:
 - Complete mod features and item list
 - Installation guides
 - Gameplay information
@@ -120,7 +120,7 @@ Licensed under Apache-2.0 - see [LICENSE](LICENSE) file.
 
 - [Modrinth](https://modrinth.com/mod/su-compostables)
 - [GitHub Issues](https://github.com/survivorsunited/mods-su-compostables/issues)
-- [Wiki Documentation](https://survivorsunited.github.io/mods-su-compostables/)
+- [Wiki Documentation](https://survivorsunited.github.io/mods-su-compostables/docs/intro)
 
 ---
 
