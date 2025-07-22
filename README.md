@@ -91,12 +91,13 @@ GitHub Actions automatically:
 When creating a new mod:
 
 1. Create project on [Modrinth](https://modrinth.com)
-2. Get your API token from Modrinth settings
-3. Add repository secrets:
-   - `MODRINTH_TOKEN` - Your API token
-   - `PROJECT_ID` - Your project ID (from URL or API)
-4. Edit `docs/MODRINTH.md` for project description
-5. Push to main branch to auto-update description
+2. Get your API token from Modrinth settings (User Settings → API Tokens)
+3. Get your project ID from the project URL (e.g., `su-compostables`)
+4. Add repository secrets in GitHub (Settings → Secrets and variables → Actions):
+   - `MODRINTH_TOKEN` - Your API token (without "Bearer " prefix)
+   - `PROJECT_ID` - Your project ID/slug
+5. Edit `docs/MODRINTH.md` for project description
+6. Create a release (tag) to auto-update description and publish
 
 ## 🤝 Contributing
 

@@ -173,7 +173,7 @@ jobs:
             fi
             
             curl -X PATCH \
-              -H "Authorization: $MODRINTH_TOKEN" \
+              -H "Authorization: Bearer $MODRINTH_TOKEN" \
               -H "Content-Type: application/json" \
               -d "{\"description\": $DESCRIPTION}" \
               "https://api.modrinth.com/v3/project/$PROJECT_ID" \
