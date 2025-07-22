@@ -157,32 +157,32 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
-      - name: Update Modrinth project description
-        env:
-          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-          PROJECT_ID: ${{ secrets.PROJECT_ID }}
-        run: |
-          if [ -n "$MODRINTH_TOKEN" ] && [ -n "$PROJECT_ID" ]; then
-            echo "Updating Modrinth project description..."
-            # Use docs/MODRINTH.md if it exists, otherwise use docs/docs/modrinth.md
-            if [ -f "docs/MODRINTH.md" ]; then
-              DESCRIPTION=$(cat docs/MODRINTH.md | jq -Rs .)
-            else
-              # Extract content after the front matter from modrinth.md
-              DESCRIPTION=$(awk '/^---$/{if(++count==2)next}/^---$/&&count<2{next}1' docs/docs/modrinth.md | jq -Rs .)
-            fi
+      # - name: Update Modrinth project description
+      #   env:
+      #     MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+      #     PROJECT_ID: ${{ secrets.PROJECT_ID }}
+      #   run: |
+      #     if [ -n "$MODRINTH_TOKEN" ] && [ -n "$PROJECT_ID" ]; then
+      #       echo "Updating Modrinth project description..."
+      #       # Use docs/MODRINTH.md if it exists, otherwise use docs/docs/modrinth.md
+      #       if [ -f "docs/MODRINTH.md" ]; then
+      #         DESCRIPTION=$(cat docs/MODRINTH.md | jq -Rs .)
+      #       else
+      #         # Extract content after the front matter from modrinth.md
+      #         DESCRIPTION=$(awk '/^---$/{if(++count==2)next}/^---$/&&count<2{next}1' docs/docs/modrinth.md | jq -Rs .)
+      #       fi
             
-            curl -X PATCH \
-              -H "Authorization: $MODRINTH_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d "{\"description\": $DESCRIPTION}" \
-              "https://api.modrinth.com/v2/project/$PROJECT_ID" \
-              --fail-with-body
+      #       curl -X PATCH \
+      #         -H "Authorization: $MODRINTH_TOKEN" \
+      #         -H "Content-Type: application/json" \
+      #         -d "{\"description\": $DESCRIPTION}" \
+      #         "https://api.modrinth.com/v2/project/$PROJECT_ID" \
+      #         --fail-with-body
               
-            echo "✅ Modrinth project description updated"
-          else
-            echo "⚠️ Skipping Modrinth update - MODRINTH_TOKEN or PROJECT_ID not set"
-          fi
+      #       echo "✅ Modrinth project description updated"
+      #     else
+      #       echo "⚠️ Skipping Modrinth update - MODRINTH_TOKEN or PROJECT_ID not set"
+      #     fi
           
       - name: Publish to Modrinth
         uses: cloudnode-pro/modrinth-publish@v2
