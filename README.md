@@ -66,6 +66,16 @@ All mod properties are centralized in `gradle.properties`:
   - Optimized JVM flags (8G-32G RAM)
   - Automatic restart on crash
 
+- **scripts/generate-web-icons.ps1** - Web icon generator (all-in-one)
+  - Usage: `.\scripts\generate-web-icons.ps1 [-Force] [-UseImageMagick]`
+  - Automatically installs dependencies (Node.js or ImageMagick)
+  - Uses Node.js by default, falls back to ImageMagick
+  - Creates all web icon formats and manifests
+  
+- **scripts/generate-web-icons.js** - Web icon generator (Node.js only)
+  - Direct Node.js implementation using sharp
+  - Called by PowerShell script automatically
+
 ## 📦 CI/CD
 
 GitHub Actions automatically:
