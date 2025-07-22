@@ -35,6 +35,11 @@ const sidebars: SidebarsConfig = {
       id: 'technical',
       label: 'Technical Details',
     },
+    {
+      type: 'doc',
+      id: 'modrinth',
+      label: 'Modrinth Description',
+    },
   ],
 
   // But you can create a sidebar manually
