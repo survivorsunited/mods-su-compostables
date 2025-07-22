@@ -1,0 +1,130 @@
+plugins {
+	id 'fabric-loom' version "${loom_version}"
+	id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.jar_name
+}
+
+repositories {
+	// Add repositories to retrieve artifacts from in here.
+	// You should only use this when depending on other mods because
+	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
+	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+	// for more information about repositories.
+}
+
+loom {
+	splitEnvironmentSourceSets()
+
+	mods {
+		"compostables" {
+			sourceSet sourceSets.main
+		}
+	}
+
+}
+
+dependencies {
+	// To change the versions see the gradle.properties file
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+	modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
+
+	// Fabric API. This is technically optional, but you probably want it anyway.
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	
+}
+
+processResources {
+	inputs.property "version", project.version
+	inputs.property "minecraft_version", project.minecraft_version
+	inputs.property "loader_version", project.fabric_loader_version
+	inputs.property "java_version", project.java_version
+	inputs.property "fabric_api_version", project.fabric_api_version
+	inputs.property "mod_id", project.mod_id
+	inputs.property "mod_name", project.mod_name
+	inputs.property "mod_description", project.mod_description
+	inputs.property "mod_author", project.mod_author
+	inputs.property "mod_homepage", project.mod_homepage
+	inputs.property "mod_sources", project.mod_sources
+	inputs.property "mod_license", project.mod_license
+	inputs.property "mod_issues", project.mod_issues
+	inputs.property "mod_icon", project.mod_icon
+	inputs.property "main_class", project.main_class
+
+	filteringCharset "UTF-8"
+
+	filesMatching("fabric.mod.json") {
+		expand "mod_version": inputs.properties.version,
+		       "minecraft_version": inputs.properties.minecraft_version,
+		       "fabric_loader_version": inputs.properties.fabric_loader_version,
+		       "java_version": inputs.properties.java_version,
+		       "fabric_api_version": inputs.properties.fabric_api_version,
+		       "mod_id": inputs.properties.mod_id,
+		       "mod_name": inputs.properties.mod_name,
+		       "mod_description": inputs.properties.mod_description,
+		       "mod_author": inputs.properties.mod_author,
+		       "mod_homepage": inputs.properties.mod_homepage,
+		       "mod_sources": inputs.properties.mod_sources,
+		       "mod_license": inputs.properties.mod_license,
+		       "mod_issues": inputs.properties.mod_issues,
+		       "mod_icon": inputs.properties.mod_icon,
+		       "main_class": inputs.properties.main_class
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 21
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+	inputs.property "archivesName", project.base.archivesName
+
+	from("LICENSE") {
+		rename { "${it}_${inputs.properties.archivesName}"}
+	}
+}
+
+// Task to print property values for CI/CD
+task printProperty {
+    doLast {
+        if (project.hasProperty('property')) {
+            def prop = project.property('property')
+            if (project.hasProperty(prop)) {
+                println project.property(prop)
+            } else {
+                throw new GradleException("Property '${prop}' not found")
+            }
+        } else {
+            throw new GradleException("Usage: gradle printProperty -Pproperty=<property_name>")
+        }
+    }
+}
+
+// configure the maven publication
+publishing {
+	publications {
+		create("mavenJava", MavenPublication) {
+			artifactId = project.jar_name
+			from components.java
+		}
+	}
+
+	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+	repositories {
+		// Add repositories to publish to here.
+		// Notice: This block does NOT have the same function as the block in the top level.
+		// The repositories here will be used for publishing your artifact, not for
+		// retrieving dependencies.
+	}
+}

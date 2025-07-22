@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "org.survivorsunited.mods.compostables.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "FarmerMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

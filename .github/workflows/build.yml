@@ -1,0 +1,193 @@
+# Automatically build the project and run any configured tests for every push
+# and submitted pull request. This can help catch issues that only occur on
+# certain platforms or Java versions, and provides a first line of defence
+# against bad commits.
+
+name: build
+on: [pull_request, push]
+
+# Environment variables will be set dynamically from gradle.properties
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'microsoft'
+          
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v4
+        
+      - name: Make Gradle executable
+        run: chmod +x ./gradlew
+        
+      - name: Build project
+        run: ./gradlew build
+        
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Artifacts
+          path: build/libs/
+
+  docs:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: "pages"
+      cancel-in-progress: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: docs/package-lock.json
+          
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+          
+      - name: Install dependencies
+        run: |
+          cd docs
+          npm ci
+          
+      - name: Build documentation
+        run: |
+          cd docs
+          npm run build
+          
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs/build
+
+  deploy-docs:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-24.04
+    needs: docs
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  release:
+    needs: [build, docs]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'microsoft'
+          
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v4
+        
+      - name: Make Gradle executable
+        run: chmod +x ./gradlew
+        
+      - name: Extract properties from gradle.properties
+        id: properties
+        run: |
+          echo "modName=$(./gradlew -q printProperty -Pproperty=jar_name)" >> $GITHUB_OUTPUT
+          echo "modTitle=$(./gradlew -q printProperty -Pproperty=mod_name)" >> $GITHUB_OUTPUT
+          echo "modDescription=$(./gradlew -q printProperty -Pproperty=mod_description)" >> $GITHUB_OUTPUT
+          echo "modVersion=$(./gradlew -q printProperty -Pproperty=mod_version)" >> $GITHUB_OUTPUT
+        
+      - name: Build project
+        run: ./gradlew build
+          
+      - name: Generate changelog
+        id: changelog
+        run: |
+          if git describe --tags --abbrev=0 HEAD^ 2>/dev/null; then
+            PREV_TAG=$(git describe --tags --abbrev=0 HEAD^)
+            CHANGELOG="## Changes in ${{ github.ref_name }}"
+            CHANGELOG="$CHANGELOG"$'\n'
+            CHANGELOG="$CHANGELOG$(git log --pretty=format:'- %s' $PREV_TAG..HEAD)"
+          else
+            CHANGELOG="## Initial Release ${{ github.ref_name }}"
+            CHANGELOG="$CHANGELOG"$'\n'
+            CHANGELOG="$CHANGELOG- Initial release of ${{ steps.properties.outputs.modTitle }}"
+            CHANGELOG="$CHANGELOG"$'\n'
+            CHANGELOG="$CHANGELOG- ${{ steps.properties.outputs.modDescription }}"
+          fi
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          files: build/libs/${{ steps.properties.outputs.modName }}-*.jar
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Update Modrinth project description
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          PROJECT_ID: ${{ secrets.PROJECT_ID }}
+        run: |
+          if [ -n "$MODRINTH_TOKEN" ] && [ -n "$PROJECT_ID" ]; then
+            echo "Updating Modrinth project description..."
+            DESCRIPTION=$(cat docs/MODRINTH.md | jq -Rs .)
+            
+            curl -X PATCH \
+              -H "Authorization: $MODRINTH_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"description\": $DESCRIPTION}" \
+              "https://api.modrinth.com/v3/project/$PROJECT_ID" \
+              --fail-with-body
+              
+            echo "✅ Modrinth project description updated"
+          else
+            echo "⚠️ Skipping Modrinth update - MODRINTH_TOKEN or PROJECT_ID not set"
+          fi
+          
+      - name: Publish to Modrinth
+        uses: cloudnode-pro/modrinth-publish@v2
+        with:
+          token: ${{ secrets.MODRINTH_TOKEN }}
+          project: ${{ secrets.PROJECT_ID }}
+          loaders: fabric
+          files: build/libs/${{ steps.properties.outputs.modName }}-${{ github.ref_name }}.jar
+          version: ${{ github.ref_name }}
+          changelog: ${{ steps.changelog.outputs.changelog }}
+          game-versions: |-
+            1.21.x
+          featured: true
+          channel: release
