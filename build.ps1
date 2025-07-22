@@ -25,6 +25,12 @@ $FabricLoaderDownloadMap = @{
     "1.21.6" = "https://meta.fabricmc.net/v2/versions/loader/1.21.6/0.16.14/1.0.3/server/jar"
 }
 
+# Fabric API Download Map
+$FabricApiDownloadMap = @{
+    "1.21.5" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/vNBWcMLP/fabric-api-0.127.1%2B1.21.5.jar"
+    "1.21.6" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/F5TVHWcE/fabric-api-0.128.2%2B1.21.6.jar"
+}
+
 # Build the mod
 Write-Host "🔨 Building mod..." -ForegroundColor Cyan
 ./gradlew build
@@ -84,6 +90,23 @@ if ($StartServer) {
     if (-not (Test-Path $modsDir)) {
         New-Item -ItemType Directory -Path $modsDir | Out-Null
         Write-Host "📁 Created mods directory: $modsDir" -ForegroundColor Green
+    }
+
+    # Download Fabric API if not exists
+    $fabricApiJar = "fabric-api.jar"
+    if (-not (Test-Path "$modsDir/$fabricApiJar")) {
+        $fabricApiUrl = $FabricApiDownloadMap[$MinecraftVersion]
+        if ($fabricApiUrl) {
+            Write-Host "📥 Downloading Fabric API for $MinecraftVersion..." -ForegroundColor Yellow
+            Invoke-WebRequest -Uri $fabricApiUrl -OutFile "$modsDir/$fabricApiJar"
+            Write-Host "✅ Fabric API downloaded" -ForegroundColor Green
+        } else {
+            Write-Host "❌ Unknown Fabric API version for Minecraft: $MinecraftVersion" -ForegroundColor Red
+            Set-Location ..
+            exit 1
+        }
+    } else {
+        Write-Host "✅ Fabric API already exists in mods directory" -ForegroundColor Green
     }
     
     # Find and copy the built mod JAR

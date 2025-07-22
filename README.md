@@ -76,6 +76,11 @@ All mod properties are centralized in `gradle.properties`:
   - Direct Node.js implementation using sharp
   - Called by PowerShell script automatically
 
+- **scripts/update-modrinth.ps1/.sh** - Update Modrinth project description
+  - Usage: `.\scripts\update-modrinth.ps1 -ModrinthToken "token" -ProjectId "id"`
+  - Or set environment variables: `MODRINTH_TOKEN`, `PROJECT_ID`
+  - Updates project description from docs/MODRINTH.md
+
 ## 📦 CI/CD
 
 GitHub Actions automatically:
