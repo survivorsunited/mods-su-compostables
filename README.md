@@ -81,10 +81,10 @@ All mod properties are centralized in `gradle.properties`:
 GitHub Actions automatically:
 - Builds mod on every push/PR
 - Runs tests
-- Deploys documentation to GitHub Pages
-- Creates releases with changelogs
+- Creates releases with changelogs (on tags)
 - Updates Modrinth project description (on release)
 - Publishes to Modrinth (on tags)
+- Deploys documentation to GitHub Pages (on release)
 
 ### Modrinth Setup
 

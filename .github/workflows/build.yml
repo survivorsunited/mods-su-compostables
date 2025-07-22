@@ -77,7 +77,7 @@ jobs:
           path: ./docs/build
 
   deploy-docs:
-    if: startsWith(github.ref, 'refs/tags/')
+    if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -173,10 +173,10 @@ jobs:
             fi
             
             curl -X PATCH \
-              -H "Authorization: Bearer $MODRINTH_TOKEN" \
+              -H "Authorization: $MODRINTH_TOKEN" \
               -H "Content-Type: application/json" \
               -d "{\"description\": $DESCRIPTION}" \
-              "https://api.modrinth.com/v3/project/$PROJECT_ID" \
+              "https://api.modrinth.com/v2/project/$PROJECT_ID" \
               --fail-with-body
               
             echo "✅ Modrinth project description updated"
