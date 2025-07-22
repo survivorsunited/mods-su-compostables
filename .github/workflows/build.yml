@@ -77,12 +77,12 @@ jobs:
           path: ./docs/build
 
   deploy-docs:
+    if: startsWith(github.ref, 'refs/tags/')
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-24.04
-    needs: docs
-    if: github.ref == 'refs/heads/main'
+    needs: docs    
     permissions:
       pages: write
       id-token: write
