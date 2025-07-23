@@ -27,7 +27,7 @@ public class FarmerMixin {
     @Inject(method = "<init>", at = @At("RETURN"))
     private void modifyFarmerGatherables(Text name, Predicate<RegistryEntry<PointOfInterestType>> heldWorkstation, Predicate<RegistryEntry<PointOfInterestType>> acquirableWorkstation, ImmutableSet<Item> gatherableItems, ImmutableSet<Block> secondaryJobSites, SoundEvent workSound, CallbackInfo ci) {
         // Check if this is the farmer profession by checking the name
-        if (name.getString().equals("entity.minecraft.villager.farmer")) {
+        if (name.getString().equals("Farmer")) {
             // Add compostable items to the farmer's gatherable items
             this.gatherableItems = ImmutableSet.<Item>builder()
                 .addAll(gatherableItems)
