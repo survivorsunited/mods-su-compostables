@@ -40,5 +40,5 @@ replay_*.log
 *.jfr
 
 .cursor/
-
+.claude/
 test-server/
