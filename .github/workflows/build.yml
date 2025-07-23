@@ -207,7 +207,10 @@ jobs:
           echo "modVersion=$(./gradlew -q printProperty -Pproperty=mod_version)" >> $GITHUB_OUTPUT
         
       - name: Build project with updated version
-        run: ./gradlew clean build
+        run: |
+          ./gradlew clean build
+          echo "📦 Generated files in build/libs:"
+          ls -la build/libs/
           
       - name: Generate changelog
         id: changelog
