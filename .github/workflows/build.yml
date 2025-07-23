@@ -95,6 +95,9 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: [build, docs]
     runs-on: ubuntu-24.04
+    outputs:
+      version_changed: ${{ steps.version_changed.outputs.changed }}
+      new_version: ${{ steps.new_version.outputs.new_version }}
     permissions:
       contents: write
     steps:
@@ -172,8 +175,8 @@ jobs:
           echo "✅ Version bumped to $NEW_VERSION and tagged"
 
   release:
-    needs: [build, docs]
-    if: startsWith(github.ref, 'refs/tags/')
+    needs: [auto-version]
+    if: needs.auto-version.outputs.version_changed == 'true'
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -209,13 +212,14 @@ jobs:
       - name: Generate changelog
         id: changelog
         run: |
+          NEW_VERSION="${{ needs.auto-version.outputs.new_version }}"
           if git describe --tags --abbrev=0 HEAD^ 2>/dev/null; then
             PREV_TAG=$(git describe --tags --abbrev=0 HEAD^)
-            CHANGELOG="## Changes in ${{ github.ref_name }}"
+            CHANGELOG="## Changes in $NEW_VERSION"
             CHANGELOG="$CHANGELOG"$'\n'
             CHANGELOG="$CHANGELOG$(git log --pretty=format:'- %s' $PREV_TAG..HEAD)"
           else
-            CHANGELOG="## Initial Release ${{ github.ref_name }}"
+            CHANGELOG="## Initial Release $NEW_VERSION"
             CHANGELOG="$CHANGELOG"$'\n'
             CHANGELOG="$CHANGELOG- Initial release of ${{ steps.properties.outputs.modTitle }}"
             CHANGELOG="$CHANGELOG"$'\n'
@@ -228,8 +232,8 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
+          tag_name: ${{ needs.auto-version.outputs.new_version }}
+          name: Release ${{ needs.auto-version.outputs.new_version }}
           body: ${{ steps.changelog.outputs.changelog }}
           files: build/libs/${{ steps.properties.outputs.modName }}-*.jar
           draft: false
@@ -270,8 +274,8 @@ jobs:
           token: ${{ secrets.MODRINTH_TOKEN }}
           project: ${{ secrets.PROJECT_ID }}
           loaders: fabric
-          files: build/libs/${{ steps.properties.outputs.modName }}-${{ github.ref_name }}.jar
-          version: ${{ github.ref_name }}
+          files: build/libs/${{ steps.properties.outputs.modName }}-${{ needs.auto-version.outputs.new_version }}.jar
+          version: ${{ needs.auto-version.outputs.new_version }}
           changelog: ${{ steps.changelog.outputs.changelog }}
           game-versions: |-
             1.21.x
