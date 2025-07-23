@@ -142,7 +142,7 @@ enable-command-block=true
     
     # Start the server
     Write-Host "🚀 Starting Fabric server..." -ForegroundColor Green
-    Write-Host "Press Ctrl+C to stop the server" -ForegroundColor Yellow
+    Write-Host "Server will automatically stop after successful startup" -ForegroundColor Yellow
     
     $javaOpts = @(
         "-Xms2G"
@@ -155,11 +155,79 @@ enable-command-block=true
         "--enable-native-access=ALL-UNNAMED"
     )
     
-    $launchCmd = "java " + ($javaOpts -join " ") + " -jar `"$fabricServerJar`" nogui"
+    $logFile = "server.log"
+    $javaCmd = "java " + ($javaOpts -join " ") + " -jar `"$fabricServerJar`" nogui"
     
     try {
-        Invoke-Expression $launchCmd
+        # Start server in background and tee output to log file
+        $job = Start-Job -ScriptBlock {
+            param($cmd, $log)
+            Invoke-Expression "$cmd 2>&1 | Tee-Object -FilePath `"$log`""
+        } -ArgumentList $javaCmd, $logFile
+        
+        Write-Host "📄 Monitoring server log: $logFile" -ForegroundColor Cyan
+        
+        # Monitor log file for startup completion and show output
+        $timeout = 120 # 2 minutes
+        $elapsed = 0
+        $serverStarted = $false
+        $lastLineCount = 0
+        
+        while ($elapsed -lt $timeout -and !$serverStarted) {
+            Start-Sleep -Seconds 1
+            $elapsed++
+            
+            if (Test-Path $logFile) {
+                try {
+                    # Read all lines and show only new ones
+                    $allLines = Get-Content $logFile -ErrorAction SilentlyContinue
+                    if ($allLines -and $allLines.Count -gt $lastLineCount) {
+                        # Show new lines
+                        for ($i = $lastLineCount; $i -lt $allLines.Count; $i++) {
+                            Write-Host $allLines[$i]
+                            
+                            # Check this line for completion
+                            if ($allLines[$i] -match "Done \(\d+\.\d+s\)! For help, type") {
+                                Write-Host "✅ Server started successfully! Stopping server..." -ForegroundColor Green
+                                $serverStarted = $true
+                                
+                                # Force stop the job
+                                Stop-Job $job -PassThru | Remove-Job
+                                break
+                            }
+                        }
+                        $lastLineCount = $allLines.Count
+                    }
+                } catch {
+                    # File might be locked, just wait and try again
+                    Start-Sleep -Milliseconds 100
+                }
+            } else {
+                # Show progress when no log file yet
+                if ($elapsed % 5 -eq 0) {
+                    Write-Host "⏱️ Waiting for server to start logging... ($elapsed/$timeout seconds)" -ForegroundColor Yellow
+                }
+            }
+        }
+        
+        if (!$serverStarted) {
+            Write-Host "⚠️ Server startup timeout reached, stopping..." -ForegroundColor Yellow
+            Stop-Job $job -PassThru | Remove-Job
+        }
+        
+        # Display last few lines of log
+        if (Test-Path $logFile) {
+            Write-Host "`n📋 Last few log lines:" -ForegroundColor Cyan
+            Get-Content $logFile -Tail 3
+        }
+        
     } finally {
+        # Clean up
+        if ($job) {
+            Stop-Job $job -ErrorAction SilentlyContinue
+            Remove-Job $job -ErrorAction SilentlyContinue
+        }
+        Remove-Item "stop_command.txt" -ErrorAction SilentlyContinue
         Set-Location ..
         Write-Host "`n🛑 Server stopped" -ForegroundColor Yellow
     }
