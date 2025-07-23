@@ -206,8 +206,8 @@ jobs:
           echo "modDescription=$(./gradlew -q printProperty -Pproperty=mod_description)" >> $GITHUB_OUTPUT
           echo "modVersion=$(./gradlew -q printProperty -Pproperty=mod_version)" >> $GITHUB_OUTPUT
         
-      - name: Build project
-        run: ./gradlew build
+      - name: Build project with updated version
+        run: ./gradlew clean build
           
       - name: Generate changelog
         id: changelog
