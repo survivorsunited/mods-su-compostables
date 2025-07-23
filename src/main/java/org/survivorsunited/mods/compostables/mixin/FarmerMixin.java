@@ -1,27 +1,37 @@
 package org.survivorsunited.mods.compostables.mixin;
 
 import com.google.common.collect.ImmutableSet;
-
+import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.text.Text;
+import net.minecraft.village.VillagerProfession;
+import net.minecraft.world.poi.PointOfInterestType;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyArgs;
-import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(net.minecraft.village.VillagerProfession.class)
+import java.util.function.Predicate;
+
+@Mixin(VillagerProfession.class)
 public class FarmerMixin {
-    @ModifyArgs(method = "<clinit>",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/village/VillagerProfession;register(Ljava/lang/String;Lnet/minecraft/registry/RegistryKey;Lcom/google/common/collect/ImmutableSet;Lcom/google/common/collect/ImmutableSet;Lnet/minecraft/sound/SoundEvent;)Lnet/minecraft/village/VillagerProfession;"))
-    private static void ModifyFarmerGatherables(Args args)
-    {
-        if(!args.get(0).equals("farmer"))
-            return;
+    @Shadow
+    @Mutable
+    private ImmutableSet<Item> gatherableItems;
 
-        ImmutableSet<Item> defItemSet = args.get(2);
-        ImmutableSet<Item> newSet = ImmutableSet.<Item>builder()
-                .addAll(defItemSet)
-                // Portable items only (farmers can't carry blocks)
+    @Inject(method = "<init>", at = @At("RETURN"))
+    private void modifyFarmerGatherables(Text name, Predicate<RegistryEntry<PointOfInterestType>> heldWorkstation, Predicate<RegistryEntry<PointOfInterestType>> acquirableWorkstation, ImmutableSet<Item> gatherableItems, ImmutableSet<Block> secondaryJobSites, SoundEvent workSound, CallbackInfo ci) {
+        // Check if this is the farmer profession by checking the name
+        if (name.getString().equals("entity.minecraft.villager.farmer")) {
+            // Add compostable items to the farmer's gatherable items
+            this.gatherableItems = ImmutableSet.<Item>builder()
+                .addAll(gatherableItems)
+                // Add portable compostable items
                 .add(Items.DEAD_BUSH)
                 .add(Items.BAMBOO)
                 .add(Items.ROTTEN_FLESH)
@@ -52,7 +62,6 @@ public class FarmerMixin {
                 .add(Items.COOKED_COD)
                 .add(Items.COOKED_SALMON)
                 .build();
-
-        args.set(2, newSet);
+        }
     }
 }
