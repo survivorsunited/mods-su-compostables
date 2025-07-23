@@ -5,7 +5,7 @@
 [![Minecraft Version](https://img.shields.io/badge/Minecraft-1.21.5+-brightgreen)](https://www.minecraft.net/)
 [![Fabric](https://img.shields.io/badge/Fabric-0.16.14+-blue)](https://fabricmc.net/)
 
-A Minecraft Fabric mod that extends composting functionality by making 40+ additional organic items compostable.
+A Minecraft Fabric mod that extends composting functionality by making 62 additional organic items compostable, including meat, dyes, stews, and other processed organic materials.
 
 ## 📖 Documentation
 
