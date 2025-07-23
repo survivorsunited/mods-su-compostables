@@ -8,7 +8,7 @@ param(
     [Parameter(Mandatory=$false)]
     [string]$ProjectId = $env:PROJECT_ID,
     
-    [string]$DescriptionFile = "docs/MODRINTH.md",
+    [string]$DescriptionFile = "docs/docs/modrinth.md",
     [switch]$Help
 )
 
@@ -22,7 +22,7 @@ Usage: .\scripts\update-modrinth.ps1 [options]
 Options:
   -ModrinthToken <token>    Modrinth API token (or set MODRINTH_TOKEN env var)
   -ProjectId <id>          Project ID/slug (or set PROJECT_ID env var)
-  -DescriptionFile <path>   Path to description file (default: docs/MODRINTH.md)
+  -DescriptionFile <path>   Path to description file (default: docs/docs/modrinth.md)
   -Help                    Show this help message
 
 Environment Variables:
@@ -66,16 +66,9 @@ if (-not $ProjectId) {
 
 # Check if description file exists
 if (-not (Test-Path $DescriptionFile)) {
-    # Try fallback to docs version
-    $fallbackFile = "docs/docs/modrinth.md"
-    if (Test-Path $fallbackFile) {
-        Write-Host "⚠️  $DescriptionFile not found, using $fallbackFile" -ForegroundColor Yellow
-        $DescriptionFile = $fallbackFile
-    } else {
-        Write-Host "❌ Description file not found: $DescriptionFile" -ForegroundColor Red
-        Write-Host "Please ensure the description file exists" -ForegroundColor Yellow
-        exit 1
-    }
+    Write-Host "❌ Description file not found: $DescriptionFile" -ForegroundColor Red
+    Write-Host "Please ensure the description file exists" -ForegroundColor Yellow
+    exit 1
 }
 
 Write-Host "🚀 Updating Modrinth project description..." -ForegroundColor Cyan
@@ -84,16 +77,11 @@ Write-Host "Description file: $DescriptionFile" -ForegroundColor Gray
 
 try {
     # Read and prepare description
-    if ($DescriptionFile -like "*docs/modrinth.md") {
-        # Extract content after front matter for docs version
-        $content = Get-Content $DescriptionFile -Raw
-        # Remove front matter (everything between first two --- lines)
-        $description = ($content -split '---')[2..($content -split '---').Length] -join '---'
-        $description = $description.Trim()
-    } else {
-        # Use file as-is for standalone MODRINTH.md
-        $description = Get-Content $DescriptionFile -Raw
-    }
+    # Extract content after front matter
+    $content = Get-Content $DescriptionFile -Raw
+    # Remove front matter (everything between first two --- lines)
+    $description = ($content -split '---')[2..($content -split '---').Length] -join '---'
+    $description = $description.Trim()
     
     # Create temporary file for JSON payload
     $tempFile = [System.IO.Path]::GetTempFileName()

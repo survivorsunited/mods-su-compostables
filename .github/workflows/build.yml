@@ -91,6 +91,21 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
+  update-modrinth-description:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: deploy-docs
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Update Modrinth project description
+        shell: pwsh
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          PROJECT_ID: ${{ secrets.PROJECT_ID }}
+        run: ./scripts/update-modrinth.ps1
+
   auto-version:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: [build, docs]
