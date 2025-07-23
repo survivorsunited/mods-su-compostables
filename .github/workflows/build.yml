@@ -91,6 +91,86 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
+  auto-version:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [build, docs]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'microsoft'
+          
+      - name: Get current version
+        id: current_version
+        run: |
+          CURRENT_VERSION=$(grep "^mod_version=" gradle.properties | cut -d'=' -f2)
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT_VERSION"
+          
+      - name: Increment patch version
+        id: new_version
+        run: |
+          CURRENT_VERSION="${{ steps.current_version.outputs.version }}"
+          # Split version into parts (assume semantic versioning: x.y.z)
+          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+          MAJOR=${VERSION_PARTS[0]}
+          MINOR=${VERSION_PARTS[1]}
+          PATCH=${VERSION_PARTS[2]}
+          
+          # Increment patch version
+          NEW_PATCH=$((PATCH + 1))
+          NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
+          
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+          
+      - name: Update gradle.properties
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
+          sed -i "s/^mod_version=.*/mod_version=$NEW_VERSION/" gradle.properties
+          echo "Updated gradle.properties with version $NEW_VERSION"
+          
+      - name: Check if version changed
+        id: version_changed
+        run: |
+          if git diff --quiet gradle.properties; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No version change needed"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Version will be updated"
+          fi
+          
+      - name: Commit and tag new version
+        if: steps.version_changed.outputs.changed == 'true'
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
+          
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Commit version bump
+          git add gradle.properties
+          git commit -m "Bump version to $NEW_VERSION"
+          
+          # Create and push tag
+          git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION"
+          git push origin main
+          git push origin "$NEW_VERSION"
+          
+          echo "✅ Version bumped to $NEW_VERSION and tagged"
+
   release:
     needs: [build, docs]
     if: startsWith(github.ref, 'refs/tags/')
