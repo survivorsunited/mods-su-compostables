@@ -42,7 +42,7 @@ Because it should be in real life! This mod makes composting more realistic by a
 | **50%** | Podzol, Chorus Fruit, Chorus Plant, Rabbit's Foot | 4 |
 | **65%** | Spider Eye, Mycelium, Nylium Blocks, Popped Chorus Fruit, Egg, Blue Egg, Brown Egg | 7 |
 | **75%** | Poisonous Potato, Chorus Flower | 2 |
-| **100%** | All Raw Meat, All Cooked Meat, All Fish, All Stews, All 16 Dyes, Bamboo Block, Rotten Flesh, Fermented Spider Eye | 40 |
+| **100%** | All Raw Meat, All Cooked Meat, All Fish, All Stews, All 16 Dyes, Block of Bamboo, Rotten Flesh, Fermented Spider Eye | 40 |
 
 ## 🧑‍🌾 Farmer Villagers
 
