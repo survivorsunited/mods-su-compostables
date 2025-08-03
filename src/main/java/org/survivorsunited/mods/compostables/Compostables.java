@@ -25,13 +25,10 @@ public class Compostables implements ModInitializer {
 	}
 	
 	private void registerCompostableItems() {
-		// 10% chance items (dried/minimal organic matter)
-		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.DEAD_BUSH, 0.1f);
+		// 30% chance items (basic soil/organic blocks + minimal organic content)
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.DEAD_BUSH, 0.3f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.DIRT_PATH, 0.3f);
 		
-		// 20% chance items (low organic content)
-		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.DIRT_PATH, 0.2f);
-		
-		// 30% chance items (basic soil/organic blocks + minimal organic content + dyes)
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.GRASS_BLOCK, 0.3f);
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.ROOTED_DIRT, 0.3f);
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.MUDDY_MANGROVE_ROOTS, 0.3f);
@@ -59,9 +56,9 @@ public class Compostables implements ModInitializer {
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.BLUE_EGG, 0.65f);
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.BROWN_EGG, 0.65f);
 		
-		// 75% chance items (nutritious organic matter)
-		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.POISONOUS_POTATO, 0.75f);
-		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.CHORUS_FLOWER, 0.75f);
+		// 85% chance items (nutritious organic matter)
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.POISONOUS_POTATO, 0.85f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.CHORUS_FLOWER, 0.85f);
 		
 		// 100% chance items (pure organic matter - raw meat, processed/fermented foods, dyes)
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.BAMBOO_BLOCK, 1.0f); // 9 bamboo concentrated into 1 block
@@ -106,6 +103,53 @@ public class Compostables implements ModInitializer {
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.RED_DYE, 1.0f); // From poppy, rose bush, etc.
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.BLACK_DYE, 1.0f); // From squid ink or wither rose
 		
-		LOGGER.info("Registered {} new compostable items", 62);
+		// Carpets (wool-based, 100% organic)
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.WHITE_CARPET, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.ORANGE_CARPET, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.MAGENTA_CARPET, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.LIGHT_BLUE_CARPET, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.YELLOW_CARPET, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.LIME_CARPET, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.PINK_CARPET, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.GRAY_CARPET, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.LIGHT_GRAY_CARPET, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.CYAN_CARPET, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.PURPLE_CARPET, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.BLUE_CARPET, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.BROWN_CARPET, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.GREEN_CARPET, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.RED_CARPET, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.BLACK_CARPET, 1.0f);
+		
+		// Special carpets
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.MOSS_CARPET, 1.0f); // Already organic moss
+		
+		// Bone-based items (calcium phosphate - excellent compost material)
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.BONE, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.BONE_BLOCK, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.BONE_MEAL, 1.0f);
+		
+		// String (organic fiber from spiders)
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.STRING, 0.65f);
+		
+		// Wool blocks (sheep wool - 100% organic)
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.WHITE_WOOL, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.ORANGE_WOOL, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.MAGENTA_WOOL, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.LIGHT_BLUE_WOOL, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.YELLOW_WOOL, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.LIME_WOOL, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.PINK_WOOL, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.GRAY_WOOL, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.LIGHT_GRAY_WOOL, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.CYAN_WOOL, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.PURPLE_WOOL, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.BLUE_WOOL, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.BROWN_WOOL, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.GREEN_WOOL, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.RED_WOOL, 1.0f);
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.BLACK_WOOL, 1.0f);
+		
+		LOGGER.info("Registered {} new compostable items", 100);
 	}
 }
