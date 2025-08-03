@@ -5,7 +5,7 @@ title: Modrinth Description
 
 # Compostables
 
-A Minecraft Fabric mod that extends composting functionality by making 62 additional organic items compostable, including meat, dyes, stews, and other processed organic materials.
+A Minecraft Fabric mod that extends composting functionality by making 100 additional organic items compostable, including meat, dyes, stews, carpets, wool, bones, and other processed organic materials.
 
 ## 🌱 About
 
@@ -13,7 +13,7 @@ Because it should be in real life! This mod makes composting more realistic by a
 
 ## ✨ Features
 
-- **62 New Compostable Items** - From dead bushes (10%) to processed organic materials (100%)
+- **100 New Compostable Items** - From dead bushes (30%) to raw meat, stews, dyes, carpets, wool, and bones (100%)
 - **Balanced Progression** - Each item has carefully balanced composting chances
 - **Villager Compatibility** - Farmer villagers will pick up and compost the new items
 - **Server-Side Only** - No client installation required
@@ -31,29 +31,29 @@ Because it should be in real life! This mod makes composting more realistic by a
 2. Place it in your `mods` folder
 3. Start Minecraft!
 
-## 🗂️ New Compostable Items (62 Total)
+## 🗂️ New Compostable Items (100 Total)
 
 | Chance | Items | Count |
 |--------|--------|----------|
-| **10%** | Dead Bush | 1 |
-| **20%** | Dirt Path | 1 |
-| **30%** | Grass Block, Rooted Dirt, Muddy Mangrove Roots, Turtle Egg, Sniffer Egg, Sculk Vein | 6 |
-| **35%** | Bamboo | 1 |
-| **50%** | Podzol, Chorus Fruit, Chorus Plant, Rabbit's Foot | 4 |
-| **65%** | Spider Eye, Mycelium, Nylium Blocks, Popped Chorus Fruit, Egg, Blue Egg, Brown Egg | 7 |
-| **75%** | Poisonous Potato, Chorus Flower | 2 |
-| **100%** | All Raw Meat, All Cooked Meat, All Fish, All Stews, All 16 Dyes, Block of Bamboo, Rotten Flesh, Fermented Spider Eye | 40 |
+| **30%** | Dead Bush, Dirt Path, Grass Block, Rooted Dirt, Muddy Mangrove Roots, Turtle Egg, Sniffer Egg, Sculk Vein | 8 |
+| **50%** | Bamboo, Podzol, Chorus Fruit, Chorus Plant, Rabbit's Foot | 5 |
+| **65%** | Spider Eye, Mycelium, Crimson Nylium, Warped Nylium, Popped Chorus Fruit, Egg, Blue Egg, Brown Egg, String | 9 |
+| **85%** | Poisonous Potato, Chorus Flower | 2 |
+| **100%** | Block of Bamboo, Rotten Flesh, Fermented Spider Eye, All Stews (4), Raw Meat (5), Raw Fish (4), Cooked Meat (5), Cooked Fish (2), All Dyes (16), All Carpets (17), Bone Items (3), All Wool (16) | 76 |
 
 ## 🧑‍🌾 Farmer Villagers
 
 Farmer villagers will now pick up and compost:
-- All portable organic items (42 items)
+- All portable organic items (76 items excluding blocks)
 - Raw and cooked meat/fish
-- All dyes and stews
+- Raw and cooked meat/fish
 - Chorus fruits and flowers
+- Stews and soups
 - Eggs and organic waste
+- Dyes and carpets
+- Bones and string
 
-*Note: Farmers cannot pick up soil blocks, but players can manually compost them.*
+*Note: Farmers cannot pick up blocks (Grass Block, Dirt Path, Rooted Dirt, Podzol, Mycelium, Nylium blocks, Muddy Mangrove Roots, Block of Bamboo, Bone Block, Wool blocks), but players can manually compost them.*
 
 ## 📖 Documentation
 
