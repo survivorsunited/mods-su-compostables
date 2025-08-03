@@ -5,7 +5,7 @@
 [![Minecraft Version](https://img.shields.io/badge/Minecraft-1.21.5+-brightgreen)](https://www.minecraft.net/)
 [![Fabric](https://img.shields.io/badge/Fabric-0.16.14+-blue)](https://fabricmc.net/)
 
-A Minecraft Fabric mod that extends composting functionality by making 62 additional organic items compostable, including meat, dyes, stews, and other processed organic materials.
+A Minecraft Fabric mod that extends composting functionality by making 100 additional organic items compostable, including meat, dyes, stews, carpets, wool, bones, and other processed organic materials.
 
 ## 📖 Documentation
 
@@ -79,7 +79,7 @@ All mod properties are centralized in `gradle.properties`:
 - **scripts/update-modrinth.ps1/.sh** - Update Modrinth project description
   - Usage: `.\scripts\update-modrinth.ps1 -ModrinthToken "token" -ProjectId "id"`
   - Or set environment variables: `MODRINTH_TOKEN`, `PROJECT_ID`
-  - Updates project description from docs/MODRINTH.md
+  - Updates project description from docs/modrinth.md
 
 ## 📦 CI/CD
 
@@ -101,7 +101,7 @@ When creating a new mod:
 4. Add repository secrets in GitHub (Settings → Secrets and variables → Actions):
    - `MODRINTH_TOKEN` - Your API token (without "Bearer " prefix)
    - `PROJECT_ID` - Your project ID/slug
-5. Edit `docs/MODRINTH.md` for project description
+5. Edit `docs/modrinth.md` for project description
 6. Create a release (tag) to auto-update description and publish
 
 ## 🤝 Contributing

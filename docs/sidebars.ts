@@ -40,6 +40,43 @@ const sidebars: SidebarsConfig = {
       id: 'modrinth',
       label: 'Modrinth Description',
     },
+    {
+      type: 'category',
+      label: 'Reference',
+      collapsed: false,
+      items: [
+        {
+          type: 'doc',
+          id: 'reference/composter',
+          label: 'Composter Reference',
+        },
+        {
+          type: 'doc',
+          id: 'reference/flowers',
+          label: 'Flowers',
+        },
+        {
+          type: 'doc',
+          id: 'reference/food',
+          label: 'Food Items',
+        },
+        {
+          type: 'doc',
+          id: 'reference/natural',
+          label: 'Natural Blocks',
+        },
+        {
+          type: 'doc',
+          id: 'reference/saplings',
+          label: 'Saplings',
+        },
+        {
+          type: 'doc',
+          id: 'reference/structural',
+          label: 'Structural Blocks',
+        },
+      ],
+    },
   ],
 
   // But you can create a sidebar manually
