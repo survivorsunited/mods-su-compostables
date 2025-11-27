@@ -4,7 +4,8 @@
   "package": "org.survivorsunited.mods.compostables.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "FarmerMixin"
+    "FarmerMixin",
+    "ComposterBlockMixin"
   ],
   "client": [
   ],

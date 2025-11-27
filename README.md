@@ -5,7 +5,7 @@
 [![Minecraft Version](https://img.shields.io/badge/Minecraft-1.21.5+-brightgreen)](https://www.minecraft.net/)
 [![Fabric](https://img.shields.io/badge/Fabric-0.16.14+-blue)](https://fabricmc.net/)
 
-A Minecraft Fabric mod that extends composting functionality by making 100 additional organic items compostable, including meat, dyes, stews, carpets, wool, bones, and other processed organic materials.
+A Minecraft Fabric mod that extends composting functionality by making 100 additional organic items compostable, including meat, dyes, stews, carpets, wool, bones, and other processed organic materials. All block items (carpets, wool blocks, grass blocks, etc.) can now be properly composted instead of being placed as blocks.
 
 ## 📖 Documentation
 
@@ -26,7 +26,7 @@ Visit our **[Wiki](https://survivorsunited.github.io/mods-su-compostables/docs/i
 .\build.ps1 -StartServer
 
 # Build and start test server with specific version
-.\build.ps1 -StartServer -MinecraftVersion "1.21.6"
+.\build.ps1 -StartServer -MinecraftVersion "1.21.8"
 ```
 
 ### Requirements
@@ -40,12 +40,24 @@ Visit our **[Wiki](https://survivorsunited.github.io/mods-su-compostables/docs/i
 ```
 mods-compostables/
 ├── src/main/java/          # Java source code
+│   └── org/survivorsunited/mods/compostables/
+│       ├── Compostables.java           # Main mod class
+│       └── mixin/
+│           ├── ComposterBlockMixin.java  # Handles block item composting
+│           └── FarmerMixin.java          # Villager compatibility
 ├── src/main/resources/     # Resources (mixins, fabric.mod.json)
 ├── docs/                   # Documentation site (Docusaurus)
 ├── scripts/                # Utility scripts
 ├── gradle.properties       # Mod configuration
 └── build.gradle           # Build configuration
 ```
+
+### Technical Details
+
+- **Server-Side Only**: Works in multiplayer without client installation
+- **Block Item Support**: Special mixin handles block items (carpets, wool, etc.) to prevent placement and allow composting
+- **Villager Integration**: Farmer villagers automatically compost new items
+- **100% Compatible**: Uses standard Fabric mixins and doesn't modify core game behavior
 
 ### Configuration
 
@@ -117,6 +129,7 @@ When creating a new mod:
 - Update documentation for features
 - Add unit tests where applicable
 - Test on both client and server
+- When adding new block items, ensure they work with `ComposterBlockMixin`
 
 ## 📄 License
 
