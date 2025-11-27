@@ -288,13 +288,29 @@ jobs:
       #       echo "⚠️ Skipping Modrinth update - MODRINTH_TOKEN or PROJECT_ID not set"
       #     fi
           
+      - name: Find JAR file
+        id: find_jar
+        run: |
+          JAR_FILE=$(ls build/libs/${{ steps.properties.outputs.modName }}-${{ needs.auto-version.outputs.new_version }}.jar 2>/dev/null | head -n 1)
+          if [ -z "$JAR_FILE" ]; then
+            # Fallback: find any JAR file matching the pattern (excluding sources/dev)
+            JAR_FILE=$(ls build/libs/${{ steps.properties.outputs.modName }}-${{ needs.auto-version.outputs.new_version }}*.jar 2>/dev/null | grep -v sources | grep -v dev | head -n 1)
+          fi
+          if [ -z "$JAR_FILE" ]; then
+            echo "❌ No JAR file found matching pattern"
+            ls -la build/libs/
+            exit 1
+          fi
+          echo "jar_file=$JAR_FILE" >> $GITHUB_OUTPUT
+          echo "✅ Found JAR file: $JAR_FILE"
+          
       - name: Publish to Modrinth
         uses: cloudnode-pro/modrinth-publish@v2
         with:
           token: ${{ secrets.MODRINTH_TOKEN }}
           project: ${{ secrets.PROJECT_ID }}
           loaders: fabric
-          files: build/libs/${{ steps.properties.outputs.modName }}-${{ needs.auto-version.outputs.new_version }}.jar
+          files: ${{ steps.find_jar.outputs.jar_file }}
           version: ${{ needs.auto-version.outputs.new_version }}
           changelog: ${{ steps.changelog.outputs.changelog }}
           game-versions: |-
