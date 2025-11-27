@@ -291,16 +291,25 @@ jobs:
       - name: Find JAR file
         id: find_jar
         run: |
-          JAR_FILE=$(ls build/libs/${{ steps.properties.outputs.modName }}-${{ needs.auto-version.outputs.new_version }}.jar 2>/dev/null | head -n 1)
-          if [ -z "$JAR_FILE" ]; then
+          MOD_NAME="${{ steps.properties.outputs.modName }}"
+          VERSION="${{ needs.auto-version.outputs.new_version }}"
+          
+          # Try exact match first
+          if [ -f "build/libs/${MOD_NAME}-${VERSION}.jar" ]; then
+            JAR_FILE="build/libs/${MOD_NAME}-${VERSION}.jar"
+          else
             # Fallback: find any JAR file matching the pattern (excluding sources/dev)
-            JAR_FILE=$(ls build/libs/${{ steps.properties.outputs.modName }}-${{ needs.auto-version.outputs.new_version }}*.jar 2>/dev/null | grep -v sources | grep -v dev | head -n 1)
+            JAR_FILE=$(find build/libs -name "${MOD_NAME}-${VERSION}*.jar" ! -name "*sources*" ! -name "*dev*" | head -n 1)
           fi
-          if [ -z "$JAR_FILE" ]; then
+          
+          if [ -z "$JAR_FILE" ] || [ ! -f "$JAR_FILE" ]; then
             echo "❌ No JAR file found matching pattern"
-            ls -la build/libs/
+            echo "Looking for: ${MOD_NAME}-${VERSION}.jar"
+            echo "Files in build/libs:"
+            ls -la build/libs/ || echo "build/libs directory not found"
             exit 1
           fi
+          
           echo "jar_file=$JAR_FILE" >> $GITHUB_OUTPUT
           echo "✅ Found JAR file: $JAR_FILE"
           
