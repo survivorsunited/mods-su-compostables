@@ -1,6 +1,14 @@
 # Minecraft Fabric Server Startup Script
 # Automatically finds and launches the Fabric server JAR file
 
+# Detect available memory and set appropriate JVM options
+$totalMemory = (Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB
+$maxMemory = [math]::Min([math]::Max(4, [math]::Floor($totalMemory * 0.5)), 16)  # Between 4GB and 16GB
+$minMemory = [math]::Max(2, [math]::Floor($maxMemory * 0.5))  # Half of max, minimum 2GB
+
+Write-Host "💾 System memory: $([math]::Round($totalMemory, 1)) GB" -ForegroundColor Cyan
+Write-Host "📊 Allocated memory: ${minMemory}G - ${maxMemory}G" -ForegroundColor Cyan
+
 $JavaOpts = @(
   "-server"
   "-XX:+UseG1GC"
@@ -8,21 +16,40 @@ $JavaOpts = @(
   "-XX:MaxGCPauseMillis=200"
   "-XX:+UnlockExperimentalVMOptions"
   "-XX:+DisableExplicitGC"
-  "-Xms8G"
-  "-Xmx32G"
+  "-Xms${minMemory}G"
+  "-Xmx${maxMemory}G"
   "--enable-native-access=ALL-UNNAMED"
 )
 
-# Minecarft Server Verison Download Map
+# Set the correct JDK 21 path
+$jdkPath = "C:\data\apps\#dev\jdk\jdk-21.0.7"
+if (Test-Path $jdkPath) {
+    $env:JAVA_HOME = $jdkPath
+    $env:Path = "$jdkPath\bin;" + $env:Path
+    Write-Host "✅ JAVA_HOME set to $jdkPath" -ForegroundColor Green
+} else {
+    Write-Host "⚠️  JDK path not found: $jdkPath" -ForegroundColor Yellow
+    Write-Host "   Using system Java. Ensure Java 21 is installed." -ForegroundColor Yellow
+}
+
+# Minecraft Server Version Download Map
 $MinecraftServerDownloadMap = @{
-    "1.21.6" = "https://piston-data.mojang.com/v1/objects/e6ec2f64e6080b9b5d9b471b291c33cc7f509733/server.jar"
     "1.21.5" = "https://piston-data.mojang.com/v1/objects/6e64dcabba3c01a7271b4fa6bd898483b794c59b/server.jar"
+    "1.21.6" = "https://piston-data.mojang.com/v1/objects/e6ec2f64e6080b9b5d9b471b291c33cc7f509733/server.jar"
+    "1.21.7" = "https://piston-data.mojang.com/v1/objects/05e4b48fbc01f0385adb74bcff9751d34552486c/server.jar"
+    "1.21.8" = "https://piston-data.mojang.com/v1/objects/6bce4ef400e4efaa63a13d5e6f6b500be969ef81/server.jar"
+    "1.21.9" = "https://piston-data.mojang.com/v1/objects/11e54c2081420a4d49db3007e66c80a22579ff2a/server.jar"
+    "1.21.10" = "https://piston-data.mojang.com/v1/objects/95495a7f485eedd84ce928cef5e223b757d2f764/server.jar"
 }
 
 # Fabric Loader Download Map
 $FabricLoaderDownloadMap = @{
     "1.21.5" = "https://meta.fabricmc.net/v2/versions/loader/1.21.5/0.16.14/1.0.3/server/jar"
     "1.21.6" = "https://meta.fabricmc.net/v2/versions/loader/1.21.6/0.16.14/1.0.3/server/jar"
+    "1.21.7" = "https://meta.fabricmc.net/v2/versions/loader/1.21.7/0.17.3/1.1.0/server/jar"
+    "1.21.8" = "https://meta.fabricmc.net/v2/versions/loader/1.21.8/0.17.3/1.1.0/server/jar"
+    "1.21.9" = "https://meta.fabricmc.net/v2/versions/loader/1.21.9/0.17.3/1.1.0/server/jar"
+    "1.21.10" = "https://meta.fabricmc.net/v2/versions/loader/1.21.10/0.17.3/1.1.0/server/jar"
 }
 
 $LogDir = "logs"
