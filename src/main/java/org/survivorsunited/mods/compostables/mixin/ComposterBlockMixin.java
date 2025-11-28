@@ -7,7 +7,6 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -41,11 +40,11 @@ public class ComposterBlockMixin {
 		World world,
 		BlockPos pos,
 		PlayerEntity player,
-		Hand hand,
 		BlockHitResult hit,
 		CallbackInfoReturnable<ActionResult> cir
 	) {
-		ItemStack stack = player.getStackInHand(hand);
+		// Get the item stack from the player's main hand
+		ItemStack stack = player.getMainHandStack();
 		Item item = stack.getItem();
 		
 		// Check if the item is a block item (can be placed as a block)
