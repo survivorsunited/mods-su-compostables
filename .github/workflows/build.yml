@@ -428,8 +428,11 @@ jobs:
             sed -i "s/^fabric_version=.*/fabric_version=$FABRIC_VERSION/" gradle.properties
             sed -i "s/^loom_version=.*/loom_version=$LOOM_VERSION/" gradle.properties
             
-            # Build
-            ./gradlew clean build --no-daemon
+            # Clean gradle cache to force plugin re-resolution
+            rm -rf .gradle build
+            
+            # Build with refresh dependencies to ensure plugin is re-resolved
+            ./gradlew clean build --no-daemon --refresh-dependencies
             
             # Rename JAR
             ORIGINAL_JAR=$(find build/libs -name "${MOD_NAME}-${MOD_VERSION}.jar" ! -name "*sources*" ! -name "*dev*" | head -n 1)
