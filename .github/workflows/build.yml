@@ -45,18 +45,26 @@ jobs:
           LOADER_VERSION=$(echo "$CONFIG" | jq -r '.loader_version')
           FABRIC_VERSION=$(echo "$CONFIG" | jq -r '.fabric_version')
           LOOM_VERSION=$(echo "$CONFIG" | jq -r '.loom_version')
+          GRADLE_VERSION=$(echo "$CONFIG" | jq -r '.gradle_version')
           
           echo "mc_version=$MC_VERSION" >> $GITHUB_OUTPUT
           echo "yarn_mappings=$YARN_MAPPINGS" >> $GITHUB_OUTPUT
           echo "loader_version=$LOADER_VERSION" >> $GITHUB_OUTPUT
           echo "fabric_version=$FABRIC_VERSION" >> $GITHUB_OUTPUT
           echo "loom_version=$LOOM_VERSION" >> $GITHUB_OUTPUT
+          echo "gradle_version=$GRADLE_VERSION" >> $GITHUB_OUTPUT
           
           echo "📦 Building for Minecraft $MC_VERSION"
           echo "   Yarn: $YARN_MAPPINGS"
           echo "   Loader: $LOADER_VERSION"
           echo "   Fabric: $FABRIC_VERSION"
           echo "   Loom: $LOOM_VERSION"
+          echo "   Gradle: $GRADLE_VERSION"
+        
+      - name: Update Gradle Wrapper
+        run: |
+          GRADLE_VERSION="${{ steps.version_config.outputs.gradle_version }}"
+          ./gradlew wrapper --gradle-version $GRADLE_VERSION
         
       - name: Update gradle.properties for version
         run: |
@@ -420,6 +428,10 @@ jobs:
             LOADER_VERSION=$(echo "$CONFIG" | jq -r '.loader_version')
             FABRIC_VERSION=$(echo "$CONFIG" | jq -r '.fabric_version')
             LOOM_VERSION=$(echo "$CONFIG" | jq -r '.loom_version')
+            GRADLE_VERSION=$(echo "$CONFIG" | jq -r '.gradle_version')
+            
+            # Update Gradle wrapper first
+            ./gradlew wrapper --gradle-version $GRADLE_VERSION
             
             # Update gradle.properties
             sed -i "s/^minecraft_version=.*/minecraft_version=$MC_VERSION/" gradle.properties
