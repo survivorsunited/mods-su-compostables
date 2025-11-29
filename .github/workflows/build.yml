@@ -462,9 +462,10 @@ jobs:
             exit 1
           fi
           
-          # Create comma-separated list for release
-          JAR_LIST=$(echo "$JARS" | tr '\n' ' ')
-          echo "jars=$JAR_LIST" >> $GITHUB_OUTPUT
+          # Create newline-separated list for release (action-gh-release expects multiline)
+          echo "jars<<EOF" >> $GITHUB_OUTPUT
+          echo "$JARS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
           
           echo "📦 Found JARs:"
           echo "$JARS"
@@ -608,9 +609,10 @@ jobs:
             exit 1
           fi
           
-          # Create space-separated list for release
-          JAR_LIST=$(echo "$JARS" | tr '\n' ' ')
-          echo "jars=$JAR_LIST" >> $GITHUB_OUTPUT
+          # Create newline-separated list for release (action-gh-release expects multiline)
+          echo "jars<<EOF" >> $GITHUB_OUTPUT
+          echo "$JARS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
           
           echo "📦 Found JARs:"
           echo "$JARS"
