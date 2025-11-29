@@ -441,29 +441,37 @@ jobs:
             sed -i "s/^loom_version=.*/loom_version=$LOOM_VERSION/" gradle.properties
             
             # Preserve existing versioned JARs before cleaning
-            mkdir -p build/libs-preserved
-            find build/libs -name "${MOD_NAME}-${MOD_VERSION}-*.jar" -exec mv {} build/libs-preserved/ \; 2>/dev/null || true
+            mkdir -p build/libs-all
+            find build/libs -name "${MOD_NAME}-${MOD_VERSION}-*.jar" -exec cp {} build/libs-all/ \; 2>/dev/null || true
             
-            # Clean gradle cache to force plugin re-resolution
-            rm -rf .gradle
-            # Use build instead of clean to preserve libs directory structure
+            # Clean gradle cache and build directory
+            rm -rf .gradle build/libs build/classes build/resources
+            mkdir -p build/libs
+            
+            # Build with refresh dependencies
             ./gradlew build --no-daemon --refresh-dependencies
             
-            # Rename JAR
-            ORIGINAL_JAR=$(find build/libs -name "${MOD_NAME}-${MOD_VERSION}.jar" ! -name "*sources*" ! -name "*dev*" ! -name "*-*.jar" | head -n 1)
+            # Find and copy the built JAR
+            ORIGINAL_JAR=$(find build/libs -name "${MOD_NAME}-${MOD_VERSION}.jar" ! -name "*sources*" ! -name "*dev*" | head -n 1)
             if [ -n "$ORIGINAL_JAR" ]; then
-              VERSIONED_JAR="build/libs/${MOD_NAME}-${MOD_VERSION}-${MC_VERSION}.jar"
+              VERSIONED_JAR="build/libs-all/${MOD_NAME}-${MOD_VERSION}-${MC_VERSION}.jar"
               cp "$ORIGINAL_JAR" "$VERSIONED_JAR"
               echo "✅ Built: $VERSIONED_JAR"
             else
               echo "❌ Failed to find JAR for $MC_VERSION"
-              ls -la build/libs/
+              echo "Contents of build/libs:"
+              ls -la build/libs/ || echo "build/libs does not exist"
+              echo "Looking for: ${MOD_NAME}-${MOD_VERSION}.jar"
               exit 1
             fi
-            
-            # Restore preserved JARs
-            mv build/libs-preserved/*.jar build/libs/ 2>/dev/null || true
-            rmdir build/libs-preserved 2>/dev/null || true
+          done
+          
+          # Move all collected JARs to build/libs for the collection step
+          mkdir -p build/libs
+          mv build/libs-all/*.jar build/libs/ 2>/dev/null || true
+          rmdir build/libs-all 2>/dev/null || true
+          echo "📦 All JARs collected in build/libs:"
+          ls -la build/libs/
           done
           
       - name: Collect all versioned JARs
