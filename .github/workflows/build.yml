@@ -440,8 +440,11 @@ jobs:
             sed -i "s/^fabric_version=.*/fabric_version=$FABRIC_VERSION/" gradle.properties
             sed -i "s/^loom_version=.*/loom_version=$LOOM_VERSION/" gradle.properties
             
-            # Clean gradle cache to force plugin re-resolution
-            rm -rf .gradle build
+            # Clean gradle cache but preserve existing JARs
+            rm -rf .gradle
+            mkdir -p build/libs-preserved
+            # Move existing versioned JARs to preserve them
+            find build/libs -name "${MOD_NAME}-${MOD_VERSION}-*.jar" -exec mv {} build/libs-preserved/ \; 2>/dev/null || true
             
             # Build with refresh dependencies to ensure plugin is re-resolved
             ./gradlew clean build --no-daemon --refresh-dependencies
@@ -451,6 +454,9 @@ jobs:
             if [ -n "$ORIGINAL_JAR" ]; then
               VERSIONED_JAR="build/libs/${MOD_NAME}-${MOD_VERSION}-${MC_VERSION}.jar"
               cp "$ORIGINAL_JAR" "$VERSIONED_JAR"
+              # Move preserved JARs back
+              mv build/libs-preserved/*.jar build/libs/ 2>/dev/null || true
+              rmdir build/libs-preserved 2>/dev/null || true
               echo "✅ Built: $VERSIONED_JAR"
             else
               echo "❌ Failed to find JAR for $MC_VERSION"
