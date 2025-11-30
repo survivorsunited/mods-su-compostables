@@ -472,10 +472,15 @@ jobs:
           
           # Move all collected JARs to build/libs for the collection step
           mkdir -p build/libs
-          mv build/libs-all/*.jar build/libs/ 2>/dev/null || true
-          rmdir build/libs-all 2>/dev/null || true
-          echo "📦 All JARs collected in build/libs:"
-          ls -la build/libs/
+          if [ -d build/libs-all ] && [ "$(ls -A build/libs-all/*.jar 2>/dev/null)" ]; then
+            mv build/libs-all/*.jar build/libs/ 2>/dev/null || true
+            rmdir build/libs-all 2>/dev/null || true
+            echo "📦 All JARs collected in build/libs:"
+            ls -la build/libs/
+          else
+            echo "❌ No JARs found in build/libs-all"
+            exit 1
+          fi
           done
           
       - name: Collect all versioned JARs
