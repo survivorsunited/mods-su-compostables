@@ -15,6 +15,10 @@ Write-Host "JAVA_HOME set to $jdkPath" -ForegroundColor Green
 
 # Minecraft Server Download Map
 $MinecraftServerDownloadMap = @{
+    "1.21.1" = "https://piston-data.mojang.com/v1/objects/59353fb40c36d304f2035d51e7d6e6baa98dc05c/server.jar"
+    "1.21.2" = "https://piston-data.mojang.com/v1/objects/7bf95409b0d9b5388bfea3704ec92012d273c14c/server.jar"
+    "1.21.3" = "https://piston-data.mojang.com/v1/objects/45810d238246d90e811d896f87b14695b7fb6839/server.jar"
+    "1.21.4" = "https://piston-data.mojang.com/v1/objects/4707d00eb834b446575d89a61a11b5d548d8c001/server.jar"
     "1.21.5" = "https://piston-data.mojang.com/v1/objects/6e64dcabba3c01a7271b4fa6bd898483b794c59b/server.jar"
     "1.21.6" = "https://piston-data.mojang.com/v1/objects/e6ec2f64e6080b9b5d9b471b291c33cc7f509733/server.jar"
     "1.21.7" = "https://piston-data.mojang.com/v1/objects/05e4b48fbc01f0385adb74bcff9751d34552486c/server.jar"
@@ -25,6 +29,10 @@ $MinecraftServerDownloadMap = @{
 
 # Fabric Loader Download Map
 $FabricLoaderDownloadMap = @{
+    "1.21.1" = "https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.16.11/1.0.3/server/jar"
+    "1.21.2" = "https://meta.fabricmc.net/v2/versions/loader/1.21.2/0.16.12/1.0.3/server/jar"
+    "1.21.3" = "https://meta.fabricmc.net/v2/versions/loader/1.21.3/0.16.13/1.0.3/server/jar"
+    "1.21.4" = "https://meta.fabricmc.net/v2/versions/loader/1.21.4/0.16.13/1.0.3/server/jar"
     "1.21.5" = "https://meta.fabricmc.net/v2/versions/loader/1.21.5/0.16.14/1.0.3/server/jar"
     "1.21.6" = "https://meta.fabricmc.net/v2/versions/loader/1.21.6/0.16.14/1.0.3/server/jar"
     "1.21.7" = "https://meta.fabricmc.net/v2/versions/loader/1.21.7/0.17.3/1.1.0/server/jar"
@@ -35,6 +43,10 @@ $FabricLoaderDownloadMap = @{
 
 # Fabric API Download Map
 $FabricApiDownloadMap = @{
+    "1.21.1" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/fabric-api-0.124.0%2B1.21.1.jar"
+    "1.21.2" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/fabric-api-0.125.0%2B1.21.2.jar"
+    "1.21.3" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/fabric-api-0.125.5%2B1.21.3.jar"
+    "1.21.4" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/fabric-api-0.125.5%2B1.21.4.jar"
     "1.21.5" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/vNBWcMLP/fabric-api-0.127.1%2B1.21.5.jar"
     "1.21.6" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/F5TVHWcE/fabric-api-0.128.2%2B1.21.6.jar"
     "1.21.7" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/JntuF9Ul/fabric-api-0.129.0%2B1.21.7.jar"
