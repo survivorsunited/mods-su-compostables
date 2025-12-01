@@ -172,32 +172,214 @@ The mod includes `ComposterBlockMixin` to allow block items (carpets, wool, etc.
 
 ### GitHub Actions Workflow
 
-The `.github/workflows/build.yml` workflow:
+The `.github/workflows/build.yml` workflow provides comprehensive CI/CD automation:
 
-1. **Build Job**: Builds the mod on every push/PR
-2. **Docs Job**: Builds and deploys documentation
-3. **Auto-Version Job**: Auto-increments patch version on main branch
-4. **Release Job**: Creates GitHub release and publishes to Modrinth
+#### Workflow Triggers
+
+- **Pull Requests**: Builds and tests on every PR
+- **Push to main**: Builds all versions and runs tests
+- **Tag Creation**: Triggers full release process with multi-version builds
+
+#### Jobs Overview
+
+1. **`build-matrix`**: Parallel builds for all supported Minecraft versions
+   - Runs 6 parallel jobs (one per Minecraft version: 1.21.5-1.21.10)
+   - Each job builds, tests, and uploads a versioned JAR artifact
+   - Includes server startup tests to verify mod loads correctly
+   - JARs are renamed with Minecraft version: `{mod_name}-{mod_version}-{mc_version}.jar`
+
+2. **`build`**: Standard build job for PRs and pushes
+   - Builds the mod for the version in `gradle.properties`
+   - Runs tests and validates build
+
+3. **`release-manual`**: Full release process (triggered by tag creation)
+   - Builds all 6 Minecraft versions sequentially
+   - Collects all versioned JARs
+   - Creates GitHub Release with all artifacts
+   - Publishes to Modrinth
+
+4. **`docs`**: Documentation generation and deployment
+   - Builds project documentation
+   - Deploys to GitHub Pages (if configured)
+
+#### Multi-Version Build Process
+
+The `release-manual` job builds the mod for all supported Minecraft versions:
+
+1. **Version Configuration**: Reads `versions.json` for each Minecraft version's dependencies
+2. **Sequential Builds**: For each version (1.21.5-1.21.10):
+   - Updates Gradle wrapper to version-specific Gradle version
+   - Updates `gradle.properties` with version-specific settings
+   - Cleans build directory (preserving previously built JARs)
+   - Builds the mod with `./gradlew build`
+   - Copies built JAR to `build/libs-all/` with version suffix
+3. **JAR Collection**: After all builds complete:
+   - Moves all versioned JARs from `build/libs-all/` to `build/libs/`
+   - Validates all 6 JARs are present
+4. **Release Creation**: Creates GitHub Release with all 6 artifacts
+5. **Modrinth Publishing**: Uploads all 6 JARs to Modrinth
+
+#### Version Configuration
+
+The `versions.json` file defines dependencies for each Minecraft version:
+
+```json
+{
+  "1.21.5": {
+    "yarn_mappings": "1.21.5+build.1",
+    "loader_version": "0.16.14",
+    "fabric_version": "0.126.0+1.21.5",
+    "loom_version": "1.10-SNAPSHOT",
+    "gradle_version": "8.14",
+    "java_version": 21
+  },
+  ...
+}
+```
+
+This allows the pipeline to automatically use the correct versions for each Minecraft release.
 
 ### Release Process
 
-The release process is automated:
+#### Automated Release (Recommended)
 
-1. **Push to main** triggers the workflow
-2. **Auto-version job** increments `mod_version` in `gradle.properties`
-3. **Version bump commit** is created and pushed
-4. **Git tag** is created (e.g., `1.0.11`)
-5. **Release job** builds the mod and creates GitHub release
-6. **Modrinth publish** uploads the JAR to Modrinth
+The release process is fully automated using the `release.ps1` script:
 
-**Manual Release:**
-If you need to create a release manually:
 ```powershell
-# Update mod_version in gradle.properties
-# Commit and push
-git tag -a "1.0.11" -m "Release 1.0.11"
-git push origin main --tags
+# Create a new release (updates version, commits, creates tag, triggers pipeline)
+.\release.ps1 -Version "1.0.33"
 ```
+
+**What `release.ps1` does:**
+
+1. **Checks branch**: Ensures you're on `main` branch
+2. **Pulls latest**: Updates local repository
+3. **Updates version**: Sets `mod_version` in `gradle.properties`
+4. **Commits version**: Creates commit with message "Bump version to {version}"
+5. **Pushes commit**: Pushes version bump to `main` branch
+6. **Cleans tags**: Removes existing tag if present (local and remote)
+7. **Creates tag**: Creates annotated tag with version (e.g., `1.0.33`)
+8. **Pushes tag**: Pushes tag to trigger `release-manual` workflow
+
+**After tag push:**
+- GitHub Actions detects the tag creation event
+- `release-manual` job starts automatically
+- Builds all 6 Minecraft versions (takes ~5-10 minutes)
+- Creates GitHub Release with all artifacts
+- Publishes to Modrinth
+
+#### Manual Release (Alternative)
+
+If you need to create a release manually without the script:
+
+```powershell
+# 1. Update version in gradle.properties
+# Edit gradle.properties and set: mod_version=1.0.33
+
+# 2. Commit the version change
+git add gradle.properties
+git commit -m "Bump version to 1.0.33"
+git push origin main
+
+# 3. Create and push tag (without "v" prefix)
+git tag -a "1.0.33" -m "Release 1.0.33"
+git push origin "1.0.33"
+```
+
+**Important**: Tags should NOT have a "v" prefix (use `1.0.33` not `v1.0.33`).
+
+#### Release Artifacts
+
+Each release includes 6 JAR files, one for each supported Minecraft version:
+
+- `su-compostables-{mod_version}-1.21.5.jar`
+- `su-compostables-{mod_version}-1.21.6.jar`
+- `su-compostables-{mod_version}-1.21.7.jar`
+- `su-compostables-{mod_version}-1.21.8.jar`
+- `su-compostables-{mod_version}-1.21.9.jar`
+- `su-compostables-{mod_version}-1.21.10.jar`
+
+All artifacts are:
+- Attached to the GitHub Release
+- Published to Modrinth
+- Properly versioned for their respective Minecraft versions
+
+### Checking Release Status
+
+#### Using Check Scripts
+
+Two PowerShell scripts are available for checking release status:
+
+**`scripts/check-release.ps1`**: Check release and pipeline status
+```powershell
+# Check latest release
+.\scripts\check-release.ps1
+
+# Check specific release
+.\scripts\check-release.ps1 -Tag "1.0.33"
+```
+
+**`scripts/check-pipeline-logs.ps1`**: Check detailed pipeline logs
+```powershell
+# Check latest failed run
+.\scripts\check-pipeline-logs.ps1
+
+# Check specific run
+.\scripts\check-pipeline-logs.ps1 -RunId "19810743080"
+```
+
+#### Using GitHub CLI
+
+You can also check releases directly:
+
+```powershell
+# List recent releases
+gh release list
+
+# View specific release
+gh release view "1.0.33"
+
+# Check workflow runs
+gh run list --workflow=build.yml
+
+# View workflow run details
+gh run view {run-id}
+```
+
+#### Expected Release Timeline
+
+1. **Tag Creation**: Immediate (when `release.ps1` completes)
+2. **Workflow Start**: ~30 seconds after tag push
+3. **Build Phase**: ~5-10 minutes (builds 6 versions sequentially)
+4. **Release Creation**: ~1 minute after builds complete
+5. **Modrinth Publishing**: ~1 minute after release creation
+
+**Total time**: ~7-12 minutes from tag push to complete release
+
+### Pipeline Testing
+
+#### Server Startup Tests
+
+Each `build-matrix` job includes a server startup test:
+
+1. Downloads Minecraft server for the matrix version
+2. Downloads Fabric Loader and API
+3. Installs the built mod
+4. Starts the server
+5. Waits up to 60 seconds for server to start
+6. Checks for "Done" in server logs (indicates successful startup)
+7. Verifies mod loaded (checks for "compostables" in logs)
+
+This ensures the mod works correctly on each Minecraft version before release.
+
+#### Build Validation
+
+The pipeline validates:
+- ✅ All 6 Minecraft versions build successfully
+- ✅ JARs are properly named with version suffixes
+- ✅ Server starts correctly with the mod installed
+- ✅ Mod initializes without errors
+- ✅ All artifacts are collected for release
 
 ## Troubleshooting
 
@@ -312,11 +494,20 @@ mods-compostables/
 
 ## Related Files
 
+### Build Files
 - **gradle.properties**: Build configuration and mod metadata
 - **build.gradle**: Gradle build script
+- **versions.json**: Version configuration for each Minecraft version
 - **build.ps1**: Windows build and test server script
+
+### Scripts
+- **release.ps1**: Automated release creation script
 - **scripts/start-server.ps1**: Advanced server launcher
-- **.github/workflows/build.yml**: CI/CD pipeline
+- **scripts/check-release.ps1**: Check release and pipeline status
+- **scripts/check-pipeline-logs.ps1**: Check detailed pipeline logs
+
+### CI/CD Files
+- **.github/workflows/build.yml**: Complete CI/CD pipeline configuration
 - **src/main/resources/compostables.mixins.json**: Mixin configuration
 
 ## Version Management
@@ -325,19 +516,37 @@ mods-compostables/
 
 The mod version is defined in `gradle.properties`:
 ```properties
-mod_version=1.0.10
+mod_version=1.0.33
 ```
 
 ### Version Bumping
 
-The CI/CD pipeline automatically increments the patch version on each push to main:
-- `1.0.10` → `1.0.11` → `1.0.12` etc.
+**Recommended**: Use `release.ps1` to bump versions:
+```powershell
+.\release.ps1 -Version "1.0.34"
+```
 
-For major or minor version bumps, manually update `gradle.properties` and commit.
+This automatically:
+- Updates `gradle.properties`
+- Commits the change
+- Creates and pushes a tag
+- Triggers the release pipeline
+
+**Manual Version Bump**:
+1. Edit `gradle.properties` and update `mod_version`
+2. Commit the change
+3. Create a tag and push it
+
+### Version Naming
+
+- **Format**: `{major}.{minor}.{patch}` (e.g., `1.0.33`)
+- **Tags**: Use version without "v" prefix (`1.0.33` not `v1.0.33`)
+- **JARs**: Include Minecraft version suffix (`su-compostables-1.0.33-1.21.8.jar`)
 
 ### Version History
 
 Version changes are tracked in:
-- Git tags (e.g., `1.0.10`)
-- GitHub releases
-- `gradle.properties` commit history
+- **Git tags**: Semantic version tags (e.g., `1.0.33`)
+- **GitHub Releases**: Full release notes and artifacts
+- **gradle.properties**: Version history in commit log
+- **Modrinth**: Published versions with changelogs
