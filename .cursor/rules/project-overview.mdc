@@ -1,0 +1,48 @@
+# Minecraft Fabric Mod Project
+
+This is a Minecraft Fabric mod project template with automated builds, testing, and documentation.
+
+## Project Structure
+
+### Core Mod Files
+- `build.gradle` - Main build configuration for Fabric mod
+- `gradle.properties` - Project properties and version definitions
+- `settings.gradle` - Gradle project settings with Fabric repository
+- `src/main/java/{package}/ModMain.java` - Main mod entry point
+
+### Resources
+- `src/main/resources/fabric.mod.json` - Fabric mod metadata
+- `src/main/resources/data/{modid}/recipes/` - Recipe definitions
+- `src/main/resources/assets/{modid}/lang/` - Localization files
+- `src/main/resources/assets/{modid}/textures/` - Texture assets
+- `src/main/resources/assets/{modid}/models/` - Model files
+
+### Build & CI/CD
+- `build.ps1` - PowerShell build script for local development (Windows)
+- `build.sh` - Bash build script for local development (Linux/Mac)
+- `.github/workflows/build.yml` - GitHub Actions CI/CD pipeline
+
+### Documentation
+- `docs/` - Docusaurus documentation site
+- `docs/docusaurus.config.ts` - Documentation site configuration
+- `docs/docs/` - Wiki pages (intro, installation, usage, faq, technical)
+
+## Key Technical Details
+- **Minecraft Version**: 1.21.6
+- **Fabric Loader**: 0.16.14+
+- **Fabric API**: Latest compatible version
+- **Java Version**: 21
+- **Gradle**: 8.x with Fabric Loom
+
+## Development Workflow
+1. Configure mod properties in `gradle.properties`
+2. Implement mod functionality in Java classes
+3. Add recipes, textures, and other assets
+4. Test locally using `./gradlew runClient`
+5. Build mod JAR with `./gradlew build`
+6. Create releases using Git tags
+7. CI/CD automatically publishes to GitHub and Modrinth
+description:
+globs:
+alwaysApply: false
+---

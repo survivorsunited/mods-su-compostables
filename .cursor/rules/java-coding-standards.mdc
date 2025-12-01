@@ -1,0 +1,72 @@
+# Java Coding Standards for Minecraft Fabric Mod
+
+## General Standards
+- Use Java 21 features and syntax
+- Follow Minecraft/Fabric naming conventions
+- Use proper package structure: `com.example.modid` or `org.yourorg.mods.modname`
+- Implement `ModInitializer` interface for main mod class
+
+## Fabric-Specific Guidelines
+- Use `net.fabricmc.api.ModInitializer` for mod entry point
+- Use `org.slf4j.Logger` for logging (not `System.out.println`)
+- Use `net.minecraft.util.Identifier` for resource locations
+- Use `net.minecraft.recipe.Ingredient` for recipe ingredients
+- Register items, blocks, and entities properly with registries
+
+## Code Organization
+- Keep mod logic simple and focused
+- Use JSON recipes when possible instead of custom Java classes
+- Log initialization and important events
+- Follow Minecraft's existing code patterns
+- Separate client and server code appropriately
+- Use interfaces for API exposure
+
+## Package Structure
+```
+com.example.mymod/
+├── MyMod.java              // Main mod class
+├── init/                   // Initialization classes
+│   ├── ModItems.java
+│   ├── ModBlocks.java
+│   └── ModRecipes.java
+├── items/                  // Custom item classes
+├── blocks/                 // Custom block classes
+├── client/                 // Client-only code
+└── util/                   // Utility classes
+```
+
+## Example Structure
+```java
+package com.example.mymod;
+
+import net.fabricmc.api.ModInitializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class MyMod implements ModInitializer {
+    public static final String MOD_ID = "mymod";
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+
+    @Override
+    public void onInitialize() {
+        LOGGER.info("Initializing {} mod", MOD_ID);
+        
+        // Initialize items, blocks, etc.
+        ModItems.register();
+        ModBlocks.register();
+        ModRecipes.register();
+    }
+}
+```
+
+## Best Practices
+- Use constants for mod ID and other repeated strings
+- Handle null checks and edge cases
+- Document public APIs with Javadoc
+- Use meaningful variable and method names
+- Follow single responsibility principle
+- Minimize mixin usage when possible
+description:
+globs:
+alwaysApply: false
+---

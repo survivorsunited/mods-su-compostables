@@ -1,0 +1,151 @@
+# Compostables Mod Specific Context
+
+## Mod Overview
+The Compostables mod extends Minecraft's composting functionality by making 40+ organic items compostable that aren't in vanilla. This includes rotten flesh, spider eyes, eggs, meat, fish, soil blocks, and chorus fruits.
+
+## Current Implementation
+
+### Main Features
+- 40 new compostable items with balanced chances (10% to 85%)
+- Farmer villagers can collect and compost 28 portable items
+- Server-side only (no client mod required)
+- Uses vanilla composter block
+
+### Compostable Items by Chance
+- **10%**: Dead Bush
+- **20%**: Dirt Path
+- **30%**: Grass Block, Rooted Dirt, Muddy Mangrove Roots, Turtle Egg, Sniffer Egg, Sculk Vein
+- **35%**: Bamboo
+- **50%**: Rotten Flesh, Podzol, Chorus Fruit, Chorus Plant, Rabbit's Foot
+- **65%**: Spider Eye, Mycelium, Nylium Blocks, Popped Chorus Fruit, Egg, Raw Meat/Fish (all types)
+- **75%**: Poisonous Potato, Mushroom Stew, Beetroot Soup, Chorus Flower
+- **85%**: Fermented Spider Eye, Cooked Meat/Fish (all types)
+
+### Technical Implementation
+1. **Item Registration**: Uses `ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE` map
+2. **Villager Behavior**: Mixin modifies farmer profession to include new gatherable items
+3. **No new blocks/items**: Only extends existing composting system
+
+## Project-Specific Details
+
+### Namespace
+- Mod ID: `su-compostables`
+- Java package: `org.survivorsunited.mods.compostables`
+- Main class: `Compostables`
+- Mixin package: `org.survivorsunited.mods.compostables.mixin`
+
+### Key Classes
+- `Compostables.java`: Registers all 40 compostable items
+- `FarmerMixin.java`: Makes farmers collect 28 portable compostable items
+
+### Current Version
+- Mod version: 1.0.0
+- Minecraft: 1.21.5
+- Fabric Loader: 0.16.14+
+
+### Repository Secrets Required
+- `MODRINTH_TOKEN`: API token from Modrinth account
+- `PROJECT_ID`: Modrinth project ID (get after creating project)
+
+## Development Notes
+- Golden items (golden carrot, golden apple) excluded as they're valuable consumables
+- Soil blocks can't be picked up by villagers but players can compost them
+- Balanced around vanilla composting rates
+- No configuration file - all values hardcoded for consistency
+
+### Mixin Development Guidelines
+When working with mixins in this project:
+1. **Always check runtime logs first** - The test server log at `test-server/logs/latest.log` provides exact method signatures
+2. **Use constructor injection for VillagerProfession** - More stable than static initializer interception
+3. **Watch for API changes** - Minecraft 1.21.5 changed many core APIs
+
+### Common Issues and Solutions
+
+#### VillagerProfession Mixin Failures
+- **Symptom**: Compilation errors about type mismatches
+- **Solution**: Check the runtime error in server logs for exact JVM descriptors
+- **Example**: In 1.21.5, VillagerProfession constructor uses `Text` not `String`
+
+#### Build Issues
+- **Java Version**: Requires Java 21
+- **Build Command**: `./gradlew build` or use `.\build.ps1` on Windows
+- **Test Server**: Built mod is auto-copied to `test-server/mods/`
+
+### Important File Locations
+- Mixins: `src/main/java/org/survivorsunited/mods/compostables/mixin/`
+- Mixin config: `src/main/resources/compostables.mixins.json`
+- Test server logs: `test-server/logs/latest.log`
+- Technical docs: `docs/technical.md`
+
+### FarmerMixin Implementation Details
+- Injects into VillagerProfession constructor
+- Adds 30+ items to farmer's gatherable items
+- Uses Text.getString() to identify farmer profession
+- Compatible with Minecraft 1.21.5 API changes
+
+## Detailed Mixin Troubleshooting Guide
+
+### VillagerProfession Mixin Issues (Minecraft 1.21.5)
+
+#### Problem Description
+When upgrading to Minecraft 1.21.5, the VillagerProfession mixin failed with compilation errors indicating incompatible types. The error showed that `String` could not be converted to `Registry<VillagerProfession>`.
+
+#### Root Cause
+Minecraft 1.21.5 significantly changed the VillagerProfession API:
+- Registration methods now require a `Registry<VillagerProfession>` as the first parameter
+- Constructor signature changed from using String id to Text name
+- Workstation parameters changed to use `Predicate<RegistryEntry<PointOfInterestType>>`
+
+#### Resolution Process
+
+1. **Initial Error Analysis**
+   - Compilation error: `String cannot be converted to Registry<VillagerProfession>`
+   - This indicated the method signature had changed
+
+2. **Key Debugging Steps**
+   - Check the actual runtime error in `test-server/logs/latest.log`
+   - The runtime error provides the EXACT expected method signature
+   - Example error message:
+     ```
+     Expected (Lnet/minecraft/class_2561;Ljava/util/function/Predicate;Ljava/util/function/Predicate;Lcom/google/common/collect/ImmutableSet;Lcom/google/common/collect/ImmutableSet;Lnet/minecraft/class_3414;Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V
+     ```
+
+3. **Decoding the JVM Descriptors**
+   - `Lnet/minecraft/class_2561;` = Text (not String)
+   - `Ljava/util/function/Predicate;` = Predicate type
+   - `Lnet/minecraft/class_3414;` = SoundEvent
+
+4. **Final Solution**
+   Instead of trying to intercept static registration, inject into the constructor:
+   ```java
+   @Inject(method = "<init>", at = @At("RETURN"))
+   private void modifyFarmerGatherables(Text name, Predicate<RegistryEntry<PointOfInterestType>> heldWorkstation, 
+                                       Predicate<RegistryEntry<PointOfInterestType>> acquirableWorkstation, 
+                                       ImmutableSet<Item> gatherableItems, ImmutableSet<Block> secondaryJobSites, 
+                                       SoundEvent workSound, CallbackInfo ci)
+   ```
+
+#### Key Learnings
+
+1. **Always check runtime logs** - The test server log provides exact method signatures expected by the mixin system
+2. **Constructor injection is more stable** - Injecting into constructors is often more reliable than trying to intercept static initializers
+3. **JVM descriptors tell the truth** - The error messages show the exact types needed in JVM format
+4. **API changes between versions** - Major Minecraft updates often change fundamental APIs
+
+### Quick Reference: Common Mixin Descriptor Mappings
+
+| JVM Descriptor | Java Type |
+|----------------|-----------|
+| `Lnet/minecraft/class_2561;` | `Text` |
+| `Lnet/minecraft/class_3414;` | `SoundEvent` |
+| `Lnet/minecraft/class_3852;` | `VillagerProfession` |
+| `Ljava/util/function/Predicate;` | `Predicate<?>` |
+| `Lcom/google/common/collect/ImmutableSet;` | `ImmutableSet<?>` |
+
+### Debugging Workflow
+
+1. **Build fails** → Check compilation error for type mismatches
+2. **Runtime fails** → Check `test-server/logs/latest.log` for exact signatures
+3. **Decode descriptors** → Map JVM types to Java types
+4. **Update mixin** → Use exact types from error message
+5. **Test** → Run server to verify mixin applies correctly

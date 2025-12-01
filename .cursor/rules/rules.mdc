@@ -1,0 +1,104 @@
+# Minecraft Fabric Mod Development Rules
+
+## Project Context
+You are working on a Minecraft Fabric mod project with the following structure:
+- Fabric mod for Minecraft 1.21.5+
+- Uses Fabric Loader 0.16.14+ and Fabric API
+- Java 21 required
+- Gradle build system with Fabric Loom
+- CI/CD via GitHub Actions
+- Documentation site with Docusaurus
+
+## Key Technologies
+- **Language**: Java 21
+- **Build Tool**: Gradle 8.12.1 with Fabric Loom
+- **Framework**: Fabric (Minecraft modding)
+- **Testing**: Minecraft test server via build.ps1
+- **Documentation**: Docusaurus (React/TypeScript)
+- **CI/CD**: GitHub Actions
+- **Publishing**: Modrinth, GitHub Releases
+
+## Project Structure
+```
+mods-compostables/
+├── src/main/java/          # Java source code
+├── src/main/resources/     # Resources (mixins, fabric.mod.json)
+├── docs/                   # Documentation site (Docusaurus)
+├── scripts/                # Utility scripts
+├── gradle.properties       # Mod configuration
+└── build.gradle           # Build configuration
+```
+
+## Namespace Convention
+- **Organization**: org.survivorsunited
+- **Mod ID**: Uses "su-" prefix (e.g., su-compostables)
+- **JAR Name**: Uses "su-" prefix
+- **Java Package**: org.survivorsunited.mods.{modname}
+- **Important**: "SU" prefix is ONLY for JAR names, Modrinth, and GitHub repos - NOT for internal code
+
+## Configuration Management
+All mod properties are centralized in `gradle.properties`:
+- Minecraft/Fabric versions
+- Mod metadata (name, version, ID, etc.)
+- Dependencies
+- Use property expansion in fabric.mod.json and build.gradle
+
+## Development Workflow
+1. Make changes to Java code or resources
+2. Run `.\build.ps1` to build
+3. Run `.\build.ps1 -StartServer` to test with local server
+4. Update documentation in `/docs` if needed
+5. Commit changes (mod will be built by CI)
+6. Tag releases for automatic publishing
+
+## Build Scripts
+- **build.ps1**: Main build script
+  - Sets up Java 21 environment
+  - Builds mod
+  - Optionally starts test server with mod
+  - Downloads MC server & Fabric loader automatically
+  
+- **scripts/start-server.ps1**: Advanced server launcher
+  - Auto-detects Fabric server JAR
+  - Optimized JVM flags (8G-32G RAM)
+  - Automatic restart on crash
+
+## CI/CD Pipeline
+GitHub Actions automatically:
+1. Builds mod on every push/PR
+2. Deploys documentation to GitHub Pages (main branch)
+3. On release (tags):
+   - Creates GitHub release with changelog
+   - Updates Modrinth project description from docs/MODRINTH.md
+   - Publishes mod to Modrinth
+
+## Documentation
+- **README.md**: Repository operations and development info
+- **docs/**: All gameplay and mod features documentation
+- **docs/MODRINTH.md**: Description for Modrinth project page
+
+## Code Style
+- Follow Java conventions
+- Use meaningful variable names
+- Minimize comments (self-documenting code)
+- Use existing patterns in codebase
+- NEVER add comments unless explicitly requested
+
+## Testing
+- Use local test server via build.ps1
+- Test both client and server functionality
+- Verify farmer villager interactions
+- Check all compostable items work correctly
+
+## Common Tasks
+- **Add new compostable item**: Update Compostables.java and FarmerMixin.java if portable
+- **Change composting chance**: Modify value in registerCompostableItems()
+- **Update docs**: Edit files in /docs folder
+- **Release new version**: Update mod_version in gradle.properties, commit, tag, push
+
+## Important Files
+- `gradle.properties`: Central configuration
+- `src/main/resources/fabric.mod.json`: Mod metadata (uses property expansion)
+- `src/main/java/.../Compostables.java`: Main mod class
+- `src/main/java/.../mixin/FarmerMixin.java`: Villager behavior
+- `docs/MODRINTH.md`: Modrinth project description

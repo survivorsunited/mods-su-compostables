@@ -1,0 +1,92 @@
+# Documentation Standards with Docusaurus
+
+## Documentation Structure
+- `docs/docs/` - Main documentation pages
+- `docs/docusaurus.config.ts` - Site configuration
+- `docs/sidebars.ts` - Navigation structure
+- `docs/static/` - Static assets (images, downloads)
+- `docs/src/` - Custom components and styling
+
+## Standard Documentation Pages
+- `intro.md` - Introduction and mod overview
+- `installation.md` - Installation guide for players and servers
+- `usage.md` - How to use the mod features
+- `configuration.md` - Configuration options (if applicable)
+- `faq.md` - Frequently asked questions
+- `technical.md` - Technical details for developers
+- `changelog.md` - Version history and changes
+
+## Content Standards
+- **Writing Style**:
+  - Use clear, concise language
+  - Write for both new and experienced players
+  - Avoid technical jargon where possible
+- **Formatting**:
+  - Use proper Markdown headings (##, ###)
+  - Include code blocks with syntax highlighting
+  - Add images for complex concepts
+- **Media**:
+  - Store images in `docs/static/img/`
+  - Use descriptive filenames
+  - Optimize images for web (PNG/JPG)
+  - Reference with `/img/filename.png`
+
+## Site Configuration
+- Homepage redirects to documentation
+- Navbar includes logo and navigation
+- Search functionality enabled
+- GitHub Pages deployment configured
+- Custom styling in `docs/src/css/custom.css`
+
+## Key Features
+- **Local Search**: Client-side search functionality
+- **Responsive Design**: Mobile and desktop optimized
+- **Theme Support**: Dark/light mode switching
+- **Version Control**: Edit links to GitHub repository
+- **Navigation**: Auto-generated sidebars
+- **SEO**: Metadata and sitemap generation
+- **Analytics**: Optional analytics integration
+
+## Documentation Development
+```bash
+cd docs
+
+# First time setup
+npm install
+
+# Local development (hot reload)
+npm start
+
+# Build for production
+npm run build
+
+# Test production build locally
+npm run serve
+
+# Clear cache if needed
+npm run clear
+```
+
+## Deployment
+- Automatic deployment via GitHub Actions
+- Deploys to GitHub Pages on main branch
+- Custom domains supported
+- Version tagging for releases
+
+## Best Practices
+- **Organization**:
+  - Group related topics together
+  - Use consistent page structure
+  - Create logical navigation flow
+- **Content**:
+  - Include practical examples
+  - Add screenshots for UI elements
+  - Provide troubleshooting sections
+- **Maintenance**:
+  - Update docs with each release
+  - Review for accuracy regularly
+  - Fix broken links promptly
+description:
+globs:
+alwaysApply: false
+---

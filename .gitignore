@@ -39,6 +39,4 @@ replay_*.log
 *.hprof
 *.jfr
 
-.cursor/
-.claude/
 test-server/
