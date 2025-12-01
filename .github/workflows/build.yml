@@ -12,11 +12,29 @@ on:
 # Environment variables will be set dynamically from gradle.properties
 
 jobs:
+  setup:
+    runs-on: ubuntu-24.04
+    outputs:
+      mc_versions: ${{ steps.versions.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Extract Minecraft versions from versions.json
+        id: versions
+        run: |
+          # Extract all version keys from versions.json and create JSON array
+          VERSIONS=$(jq -r 'keys | sort | @json' versions.json)
+          echo "matrix=$VERSIONS" >> $GITHUB_OUTPUT
+          echo "📦 Found Minecraft versions:"
+          echo "$VERSIONS"
+  
   build-matrix:
+    needs: setup
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        mc_version: ["1.21.5", "1.21.6", "1.21.7", "1.21.8", "1.21.9", "1.21.10"]
+        mc_version: ${{ fromJson(needs.setup.outputs.mc_versions) }}
       fail-fast: false
     steps:
       - name: Checkout code
@@ -418,13 +436,16 @@ jobs:
           echo "modTitle=$(./gradlew -q printProperty -Pproperty=mod_name)" >> $GITHUB_OUTPUT
           echo "modDescription=$(./gradlew -q printProperty -Pproperty=mod_description)" >> $GITHUB_OUTPUT
           echo "modVersion=$(./gradlew -q printProperty -Pproperty=mod_version)" >> $GITHUB_OUTPUT
-          
+        
       - name: Build all Minecraft versions
         run: |
           MOD_VERSION="${{ steps.properties.outputs.modVersion }}"
           MOD_NAME="${{ steps.properties.outputs.modName }}"
           
-          for MC_VERSION in "1.21.5" "1.21.6" "1.21.7" "1.21.8" "1.21.9" "1.21.10"; do
+          # Extract all version keys from versions.json and build them
+          MC_VERSIONS=$(jq -r 'keys | sort | .[]' versions.json)
+          
+          for MC_VERSION in $MC_VERSIONS; do
             echo "📦 Building for Minecraft $MC_VERSION"
             
             CONFIG=$(jq -r ".[\"$MC_VERSION\"]" versions.json)
@@ -493,7 +514,7 @@ jobs:
           
           if [ -z "$JARS" ]; then
             echo "❌ No versioned JARs found"
-            ls -la build/libs/
+          ls -la build/libs/
             exit 1
           fi
           
@@ -537,6 +558,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
+      - name: Generate game versions list for Modrinth
+        id: game_versions
+        run: |
+          # Extract all version keys from versions.json and create newline-separated list
+          GAME_VERSIONS=$(jq -r 'keys | sort | .[]' versions.json)
+          echo "versions<<EOF" >> $GITHUB_OUTPUT
+          echo "$GAME_VERSIONS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "📦 Game versions for Modrinth:"
+          echo "$GAME_VERSIONS"
+      
       - name: Publish to Modrinth
         uses: cloudnode-pro/modrinth-publish@v2
         with:
@@ -546,13 +578,7 @@ jobs:
           files: ${{ steps.collect_jars.outputs.jars }}
           version: ${{ steps.release_version.outputs.version }}
           changelog: ${{ steps.changelog.outputs.changelog }}
-          game-versions: |-
-            1.21.5
-            1.21.6
-            1.21.7
-            1.21.8
-            1.21.9
-            1.21.10
+          game-versions: ${{ steps.game_versions.outputs.versions }}
           featured: true
           channel: release
 
@@ -664,6 +690,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
+      - name: Generate game versions list for Modrinth
+        id: game_versions
+        run: |
+          # Extract all version keys from versions.json and create newline-separated list
+          GAME_VERSIONS=$(jq -r 'keys | sort | .[]' versions.json)
+          echo "versions<<EOF" >> $GITHUB_OUTPUT
+          echo "$GAME_VERSIONS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "📦 Game versions for Modrinth:"
+          echo "$GAME_VERSIONS"
+      
       - name: Publish to Modrinth
         uses: cloudnode-pro/modrinth-publish@v2
         with:
@@ -673,12 +710,6 @@ jobs:
           files: ${{ steps.collect_jars.outputs.jars }}
           version: ${{ steps.release_version.outputs.version }}
           changelog: ${{ steps.changelog.outputs.changelog }}
-          game-versions: |-
-            1.21.5
-            1.21.6
-            1.21.7
-            1.21.8
-            1.21.9
-            1.21.10
+          game-versions: ${{ steps.game_versions.outputs.versions }}
           featured: true
           channel: release
