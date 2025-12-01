@@ -44,6 +44,162 @@ Example: `su-compostables-1.0.10.jar`
 
 ## Build Configuration
 
+### build.gradle
+
+The `build.gradle` file configures the Gradle build system for the Fabric mod.
+
+#### Plugins
+
+- **fabric-loom**: Fabric's Gradle plugin for mod development
+  - Version controlled by `loom_version` in `gradle.properties`
+  - Handles Minecraft mappings, remapping, and mod packaging
+- **maven-publish**: Enables publishing to Maven repositories
+
+#### Key Configuration
+
+**Version and Group:**
+```gradle
+version = project.mod_version
+group = project.maven_group
+```
+
+**Archives Name:**
+```gradle
+base {
+    archivesName = project.jar_name
+}
+```
+The JAR file name is controlled by `jar_name` in `gradle.properties`.
+
+**Loom Configuration:**
+```gradle
+loom {
+    splitEnvironmentSourceSets()
+    
+    mods {
+        "compostables" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+```
+- `splitEnvironmentSourceSets()`: Separates client and server source sets
+- Mod ID is set to "compostables" (matches `mod_id` in `gradle.properties`)
+
+#### Dependencies
+
+**Minecraft and Mappings:**
+```gradle
+minecraft "com.mojang:minecraft:${project.minecraft_version}"
+mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+```
+- Minecraft version from `minecraft_version` property
+- Yarn mappings for deobfuscation
+
+**Fabric Loader:**
+```gradle
+modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
+```
+- Required for all Fabric mods
+- Version from `fabric_loader_version` property
+
+**Fabric API:**
+```gradle
+modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+```
+- Provides additional Fabric APIs and features
+- Version from `fabric_version` property
+
+#### Resource Processing
+
+The `processResources` task injects properties into `fabric.mod.json`:
+
+**Properties Injected:**
+- Mod metadata (name, description, author, etc.)
+- Version information (mod version, Minecraft version, loader version)
+- Links (homepage, sources, issues)
+- License and icon
+
+**Template Processing:**
+All properties from `gradle.properties` are expanded into `fabric.mod.json` during build, ensuring the mod metadata matches the build configuration.
+
+#### Java Configuration
+
+**Java Version:**
+```gradle
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
+}
+```
+- Requires Java 21 (source and target)
+- All compilation uses Java 21 bytecode
+
+#### CI/CD Integration
+
+**printProperty Task:**
+```gradle
+task printProperty {
+    doLast {
+        if (project.hasProperty('property')) {
+            def prop = project.property('property')
+            if (project.hasProperty(prop)) {
+                println project.property(prop)
+            } else {
+                throw new GradleException("Property '${prop}' not found")
+            }
+        } else {
+            throw new GradleException("Usage: gradle printProperty -Pproperty=<property_name>")
+        }
+    }
+}
+```
+
+This task is used by the CI/CD pipeline to extract property values:
+```bash
+# Extract mod version
+./gradlew printProperty -Pproperty=mod_version
+
+# Extract mod name
+./gradlew printProperty -Pproperty=mod_name
+```
+
+The pipeline uses this to:
+- Get mod version for release naming
+- Get mod name for JAR naming
+- Get mod description for release notes
+
+#### JAR Configuration
+
+**License Inclusion:**
+```gradle
+jar {
+    from("LICENSE") {
+        rename { "${it}_${inputs.properties.archivesName}"}
+    }
+}
+```
+The LICENSE file is automatically included in the JAR with a renamed prefix.
+
+#### Publishing Configuration
+
+**Maven Publication:**
+```gradle
+publishing {
+    publications {
+        create("mavenJava", MavenPublication) {
+            artifactId = project.jar_name
+            from components.java
+        }
+    }
+}
+```
+Configured for potential Maven repository publishing (currently no repositories defined).
+
 ### gradle.properties
 
 All mod properties are centralized in `gradle.properties`:
@@ -60,6 +216,32 @@ yarn_mappings=1.21.8+build.1
 fabric_loader_version=0.17.3
 fabric_version=0.134.0+1.21.8
 ```
+
+**Property Categories:**
+
+1. **Version Properties:**
+   - `mod_version`: Mod release version
+   - `minecraft_version`: Target Minecraft version
+   - `yarn_mappings`: Yarn mapping version
+   - `fabric_loader_version`: Fabric Loader version
+   - `fabric_version`: Fabric API version
+   - `loom_version`: Fabric Loom plugin version
+
+2. **Mod Metadata:**
+   - `mod_id`: Unique mod identifier
+   - `mod_name`: Display name
+   - `mod_description`: Mod description
+   - `mod_author`: Author name
+   - `mod_homepage`: Project homepage URL
+   - `mod_sources`: Source code repository URL
+   - `mod_issues`: Issue tracker URL
+   - `mod_license`: License identifier
+
+3. **Build Properties:**
+   - `jar_name`: Output JAR file name (without version)
+   - `maven_group`: Maven group ID
+   - `main_class`: Main mod class (fully qualified)
+   - `java_version`: Required Java version
 
 ### Supported Minecraft Versions
 
@@ -495,9 +677,9 @@ mods-compostables/
 ## Related Files
 
 ### Build Files
-- **gradle.properties**: Build configuration and mod metadata
-- **build.gradle**: Gradle build script
-- **versions.json**: Version configuration for each Minecraft version
+- **build.gradle**: Gradle build script with plugins, dependencies, and build configuration
+- **gradle.properties**: Build configuration and mod metadata (all properties referenced by build.gradle)
+- **versions.json**: Version configuration for each Minecraft version (used by CI/CD pipeline)
 - **build.ps1**: Windows build and test server script
 
 ### Scripts
