@@ -481,7 +481,6 @@ jobs:
             echo "❌ No JARs found in build/libs-all"
             exit 1
           fi
-          done
           
       - name: Collect all versioned JARs
         id: collect_jars
