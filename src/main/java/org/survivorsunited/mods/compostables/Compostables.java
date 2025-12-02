@@ -2,6 +2,7 @@ package org.survivorsunited.mods.compostables;
 
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.block.ComposterBlock;
+import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
