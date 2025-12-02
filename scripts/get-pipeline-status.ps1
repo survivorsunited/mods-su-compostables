@@ -76,3 +76,5 @@ if ($LASTEXITCODE -eq 0) {
 Write-Host ""
 Write-Host "💡 View full details: gh run view $($latestRun.databaseId)" -ForegroundColor Gray
 
+
+

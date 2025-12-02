@@ -47,3 +47,5 @@ Write-Host ""
 Write-Host "💡 Manual check:" -ForegroundColor Yellow
 Write-Host "   Visit: https://modrinth.com/mod/fabric-api/versions?g=$MinecraftVersion" -ForegroundColor Cyan
 
+
+

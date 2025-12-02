@@ -53,8 +53,16 @@ public class Compostables implements ModInitializer {
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.WARPED_NYLIUM, 0.65f);
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.POPPED_CHORUS_FRUIT, 0.65f); // Increased from 50% - processing adds value
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.EGG, 0.65f);
-		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.BLUE_EGG, 0.65f);
-		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.BROWN_EGG, 0.65f);
+		// Blue and brown eggs were added in 1.21.5+
+		try {
+			// Use reflection to check if these items exist
+			Item blueEgg = (Item) Items.class.getField("BLUE_EGG").get(null);
+			Item brownEgg = (Item) Items.class.getField("BROWN_EGG").get(null);
+			ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(blueEgg, 0.65f);
+			ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(brownEgg, 0.65f);
+		} catch (NoSuchFieldException | IllegalAccessException e) {
+			// Items don't exist in this version, skip them
+		}
 		
 		// 85% chance items (nutritious organic matter)
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.POISONOUS_POTATO, 0.85f);

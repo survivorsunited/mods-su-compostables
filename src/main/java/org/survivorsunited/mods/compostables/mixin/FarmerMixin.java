@@ -16,6 +16,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 
 @Mixin(VillagerProfession.class)
@@ -46,9 +48,10 @@ public class FarmerMixin {
                 .add(Items.POPPED_CHORUS_FRUIT)
                 .add(Items.CHORUS_FLOWER)
                 .add(Items.RABBIT_FOOT)
-                .add(Items.EGG)
-                .add(Items.BLUE_EGG)
-                .add(Items.BROWN_EGG)
+				.add(Items.EGG)
+				// Blue and brown eggs were added in 1.21.5+
+				// Use reflection to check if these items exist
+				.addAll(getEggItemsIfAvailable())
                 .add(Items.BEEF)
                 .add(Items.PORKCHOP)
                 .add(Items.CHICKEN)
@@ -84,5 +87,26 @@ public class FarmerMixin {
                 .add(Items.BLACK_DYE)
                 .build();
         }
+    }
+    
+    /**
+     * Get blue and brown egg items if they exist in this Minecraft version.
+     * These items were added in 1.21.5+, so we use reflection to check for them.
+     */
+    private ImmutableSet<Item> getEggItemsIfAvailable() {
+        List<Item> eggItems = new ArrayList<>();
+        try {
+            Item blueEgg = (Item) Items.class.getField("BLUE_EGG").get(null);
+            eggItems.add(blueEgg);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            // BLUE_EGG doesn't exist in this version, skip it
+        }
+        try {
+            Item brownEgg = (Item) Items.class.getField("BROWN_EGG").get(null);
+            eggItems.add(brownEgg);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            // BROWN_EGG doesn't exist in this version, skip it
+        }
+        return ImmutableSet.copyOf(eggItems);
     }
 }
