@@ -26,7 +26,15 @@
 - **JAR Collection Step**: ✅ Success
 - **Game Versions Generation**: ✅ Success
 
-### ⏳ Modrinth Validation (Pending Manual Check)
+### ✅ Modrinth Upload Status
+- **Status**: ✅ Successfully Uploaded
+- **Version ID**: Jt6kWNzG
+- **Upload Time**: 2025-12-02T16:08:29
+- **Channel**: release
+- **Featured**: true
+- **Status**: listed
+
+### ⏳ Modrinth Website Validation (Pending Manual Check)
 
 **To Validate Modrinth Upload:**
 
