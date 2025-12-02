@@ -690,6 +690,18 @@ jobs:
           echo "📦 Found JARs:"
           echo "$JARS"
           
+          # Validate that we have JARs for all expected Minecraft versions
+          JAR_COUNT=$(echo "$JARS" | wc -l)
+          EXPECTED_COUNT=$(jq -r 'keys | length' versions.json)
+          echo "📊 JAR count: $JAR_COUNT (expected: $EXPECTED_COUNT)"
+          
+          if [ "$JAR_COUNT" -ne "$EXPECTED_COUNT" ]; then
+            echo "⚠️  Warning: Found $JAR_COUNT JARs but expected $EXPECTED_COUNT"
+            echo "This may be expected if some versions failed to build"
+          else
+            echo "✅ All $EXPECTED_COUNT JARs found for Modrinth upload"
+          fi
+          
       - name: Create Release with all JARs
         uses: softprops/action-gh-release@v1
         with:
