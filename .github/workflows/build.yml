@@ -659,13 +659,25 @@ jobs:
         id: collect_jars
         run: |
           MOD_NAME="${{ steps.properties.outputs.modName }}"
-          MOD_VERSION="${{ steps.release_version.outputs.version }}"
+          # JARs were built with the old version (before auto-version bump)
+          # Extract version from the first JAR filename we find
+          FIRST_JAR=$(find build/libs -name "${MOD_NAME}-*.jar" ! -name "*sources*" ! -name "*dev*" | head -n 1)
+          if [ -z "$FIRST_JAR" ]; then
+            echo "❌ No JARs found at all"
+            ls -la build/libs/
+            exit 1
+          fi
           
-          # Find all versioned JARs
+          # Extract version from filename: su-compostables-1.0.36-1.21.1.jar -> 1.0.36
+          JAR_BASENAME=$(basename "$FIRST_JAR" .jar)
+          MOD_VERSION=$(echo "$JAR_BASENAME" | sed "s/${MOD_NAME}-//" | sed "s/-[0-9.]*$//")
+          echo "📦 Detected mod version from JARs: $MOD_VERSION"
+          
+          # Find all versioned JARs with the detected version
           JARS=$(find build/libs -name "${MOD_NAME}-${MOD_VERSION}-*.jar" ! -name "*sources*" ! -name "*dev*" | sort)
           
           if [ -z "$JARS" ]; then
-            echo "❌ No versioned JARs found"
+            echo "❌ No versioned JARs found for version $MOD_VERSION"
             ls -la build/libs/
             exit 1
           fi
