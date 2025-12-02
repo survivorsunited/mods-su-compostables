@@ -54,15 +54,9 @@ public class Compostables implements ModInitializer {
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.POPPED_CHORUS_FRUIT, 0.65f); // Increased from 50% - processing adds value
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.EGG, 0.65f);
 		// Blue and brown eggs were added in 1.21.5+
-		try {
-			// Use reflection to check if these items exist
-			Item blueEgg = (Item) Items.class.getField("BLUE_EGG").get(null);
-			Item brownEgg = (Item) Items.class.getField("BROWN_EGG").get(null);
-			ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(blueEgg, 0.65f);
-			ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(brownEgg, 0.65f);
-		} catch (NoSuchFieldException | IllegalAccessException e) {
-			// Items don't exist in this version, skip them
-		}
+		// Use reflection to check if these items exist at runtime
+		registerEggItemIfExists("BLUE_EGG", 0.65f);
+		registerEggItemIfExists("BROWN_EGG", 0.65f);
 		
 		// 85% chance items (nutritious organic matter)
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.POISONOUS_POTATO, 0.85f);
@@ -159,5 +153,19 @@ public class Compostables implements ModInitializer {
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.BLACK_WOOL, 1.0f);
 		
 		LOGGER.info("Registered {} new compostable items", 100);
+	}
+	
+	/**
+	 * Register an egg item if it exists in this Minecraft version.
+	 * Blue and brown eggs were added in 1.21.5+.
+	 */
+	private void registerEggItemIfExists(String fieldName, float chance) {
+		try {
+			java.lang.reflect.Field field = Items.class.getField(fieldName);
+			Item item = (Item) field.get(null);
+			ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(item, chance);
+		} catch (NoSuchFieldException | IllegalAccessException e) {
+			// Item doesn't exist in this version, skip it
+		}
 	}
 }

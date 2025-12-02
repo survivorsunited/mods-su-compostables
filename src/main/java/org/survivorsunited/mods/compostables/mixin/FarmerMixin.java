@@ -95,18 +95,21 @@ public class FarmerMixin {
      */
     private ImmutableSet<Item> getEggItemsIfAvailable() {
         List<Item> eggItems = new ArrayList<>();
-        try {
-            Item blueEgg = (Item) Items.class.getField("BLUE_EGG").get(null);
-            eggItems.add(blueEgg);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            // BLUE_EGG doesn't exist in this version, skip it
-        }
-        try {
-            Item brownEgg = (Item) Items.class.getField("BROWN_EGG").get(null);
-            eggItems.add(brownEgg);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            // BROWN_EGG doesn't exist in this version, skip it
-        }
+        addEggItemIfExists(eggItems, "BLUE_EGG");
+        addEggItemIfExists(eggItems, "BROWN_EGG");
         return ImmutableSet.copyOf(eggItems);
+    }
+    
+    /**
+     * Add an egg item to the list if it exists in this Minecraft version.
+     */
+    private void addEggItemIfExists(List<Item> eggItems, String fieldName) {
+        try {
+            java.lang.reflect.Field field = Items.class.getField(fieldName);
+            Item item = (Item) field.get(null);
+            eggItems.add(item);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            // Item doesn't exist in this version, skip it
+        }
     }
 }
