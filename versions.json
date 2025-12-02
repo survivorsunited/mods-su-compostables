@@ -2,7 +2,7 @@
   "1.21.1": {
     "yarn_mappings": "1.21.1+build.1",
     "loader_version": "0.16.11",
-    "fabric_version": "0.124.0+1.21.1",
+    "fabric_version": "0.116.7+1.21.1",
     "loom_version": "1.10-SNAPSHOT",
     "gradle_version": "8.14",
     "java_version": 21
@@ -10,7 +10,15 @@
   "1.21.2": {
     "yarn_mappings": "1.21.2+build.1",
     "loader_version": "0.16.12",
-    "fabric_version": "0.125.0+1.21.2",
+    "fabric_version": "0.106.1+1.21.2",
+    "loom_version": "1.10-SNAPSHOT",
+    "gradle_version": "8.14",
+    "java_version": 21
+  },
+  "1.21.3": {
+    "yarn_mappings": "1.21.3+build.1",
+    "loader_version": "0.16.13",
+    "fabric_version": "0.125.5+1.21.3",
     "loom_version": "1.10-SNAPSHOT",
     "gradle_version": "8.14",
     "java_version": 21
@@ -18,7 +26,7 @@
   "1.21.4": {
     "yarn_mappings": "1.21.4+build.1",
     "loader_version": "0.16.13",
-    "fabric_version": "0.125.5+1.21.4",
+    "fabric_version": "0.119.4+1.21.4",
     "loom_version": "1.10-SNAPSHOT",
     "gradle_version": "8.14",
     "java_version": 21
