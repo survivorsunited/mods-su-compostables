@@ -603,13 +603,6 @@ jobs:
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
           
-      - name: Download all versioned JARs
-        uses: actions/download-artifact@v4
-        with:
-          pattern: jar-*
-          path: build/libs/
-          merge-multiple: true
-          
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -629,6 +622,79 @@ jobs:
           echo "modTitle=$(./gradlew -q printProperty -Pproperty=mod_name)" >> $GITHUB_OUTPUT
           echo "modDescription=$(./gradlew -q printProperty -Pproperty=mod_description)" >> $GITHUB_OUTPUT
           echo "modVersion=$(./gradlew -q printProperty -Pproperty=mod_version)" >> $GITHUB_OUTPUT
+          
+      - name: Build all Minecraft versions with new version
+        run: |
+          NEW_VERSION="${{ steps.release_version.outputs.version }}"
+          MOD_VERSION="$NEW_VERSION"
+          MOD_NAME="${{ steps.properties.outputs.modName }}"
+          
+          # Update gradle.properties with the new version
+          sed -i "s/^mod_version=.*/mod_version=$NEW_VERSION/" gradle.properties
+          echo "📦 Updated mod_version to $NEW_VERSION in gradle.properties"
+          
+          # Extract all version keys from versions.json and build them
+          MC_VERSIONS=$(jq -r 'keys | sort | .[]' versions.json)
+          
+          for MC_VERSION in $MC_VERSIONS; do
+            echo "📦 Building for Minecraft $MC_VERSION with mod version $NEW_VERSION"
+            
+            CONFIG=$(jq -r ".[\"$MC_VERSION\"]" versions.json)
+            YARN_MAPPINGS=$(echo "$CONFIG" | jq -r '.yarn_mappings')
+            LOADER_VERSION=$(echo "$CONFIG" | jq -r '.loader_version')
+            FABRIC_VERSION=$(echo "$CONFIG" | jq -r '.fabric_version')
+            LOOM_VERSION=$(echo "$CONFIG" | jq -r '.loom_version')
+            GRADLE_VERSION=$(echo "$CONFIG" | jq -r '.gradle_version')
+            
+            # Update Gradle wrapper first
+            ./gradlew wrapper --gradle-version $GRADLE_VERSION
+            
+            # Update gradle.properties for this Minecraft version
+            sed -i "s/^minecraft_version=.*/minecraft_version=$MC_VERSION/" gradle.properties
+            sed -i "s/^yarn_mappings=.*/yarn_mappings=$YARN_MAPPINGS/" gradle.properties
+            sed -i "s/^fabric_loader_version=.*/fabric_loader_version=$LOADER_VERSION/" gradle.properties
+            sed -i "s/^fabric_version=.*/fabric_version=$FABRIC_VERSION/" gradle.properties
+            sed -i "s/^loom_version=.*/loom_version=$LOOM_VERSION/" gradle.properties
+            # Keep mod_version as NEW_VERSION
+            sed -i "s/^mod_version=.*/mod_version=$NEW_VERSION/" gradle.properties
+            
+            # Preserve existing versioned JARs before cleaning
+            mkdir -p build/libs-all
+            find build/libs -name "${MOD_NAME}-${NEW_VERSION}-*.jar" -exec cp {} build/libs-all/ \; 2>/dev/null || true
+            
+            # Clean gradle cache and build directory
+            rm -rf .gradle build/libs build/classes build/resources
+            mkdir -p build/libs
+            
+            # Build with refresh dependencies
+            ./gradlew build --no-daemon --refresh-dependencies
+            
+            # Find and copy the built JAR
+            ORIGINAL_JAR=$(find build/libs -name "${MOD_NAME}-${NEW_VERSION}.jar" ! -name "*sources*" ! -name "*dev*" | head -n 1)
+            if [ -n "$ORIGINAL_JAR" ]; then
+              VERSIONED_JAR="build/libs-all/${MOD_NAME}-${NEW_VERSION}-${MC_VERSION}.jar"
+              cp "$ORIGINAL_JAR" "$VERSIONED_JAR"
+              echo "✅ Built: $VERSIONED_JAR"
+            else
+              echo "❌ Failed to find JAR for $MC_VERSION"
+              echo "Contents of build/libs:"
+              ls -la build/libs/ || echo "build/libs does not exist"
+              echo "Looking for: ${MOD_NAME}-${NEW_VERSION}.jar"
+              exit 1
+            fi
+          done
+          
+          # Move all collected JARs to build/libs for the collection step
+          mkdir -p build/libs
+          if [ -d build/libs-all ] && [ "$(ls -A build/libs-all/*.jar 2>/dev/null)" ]; then
+            mv build/libs-all/*.jar build/libs/ 2>/dev/null || true
+            rmdir build/libs-all 2>/dev/null || true
+            echo "📦 All JARs collected in build/libs:"
+            ls -la build/libs/
+          else
+            echo "❌ No JARs found in build/libs-all"
+            exit 1
+          fi
           
       - name: List collected JARs
         run: |
@@ -659,25 +725,16 @@ jobs:
         id: collect_jars
         run: |
           MOD_NAME="${{ steps.properties.outputs.modName }}"
-          # JARs were built with the old version (before auto-version bump)
-          # Extract version from the first JAR filename we find
-          FIRST_JAR=$(find build/libs -name "${MOD_NAME}-*.jar" ! -name "*sources*" ! -name "*dev*" | head -n 1)
-          if [ -z "$FIRST_JAR" ]; then
-            echo "❌ No JARs found at all"
-            ls -la build/libs/
-            exit 1
-          fi
+          NEW_VERSION="${{ steps.release_version.outputs.version }}"
           
-          # Extract version from filename: su-compostables-1.0.36-1.21.1.jar -> 1.0.36
-          JAR_BASENAME=$(basename "$FIRST_JAR" .jar)
-          MOD_VERSION=$(echo "$JAR_BASENAME" | sed "s/${MOD_NAME}-//" | sed "s/-[0-9.]*$//")
-          echo "📦 Detected mod version from JARs: $MOD_VERSION"
+          # JARs were just built with the new version, so use it directly
+          echo "📦 Collecting JARs for version $NEW_VERSION"
           
-          # Find all versioned JARs with the detected version
-          JARS=$(find build/libs -name "${MOD_NAME}-${MOD_VERSION}-*.jar" ! -name "*sources*" ! -name "*dev*" | sort)
+          # Find all versioned JARs with the new version
+          JARS=$(find build/libs -name "${MOD_NAME}-${NEW_VERSION}-*.jar" ! -name "*sources*" ! -name "*dev*" | sort)
           
           if [ -z "$JARS" ]; then
-            echo "❌ No versioned JARs found for version $MOD_VERSION"
+            echo "❌ No versioned JARs found for version $NEW_VERSION"
             ls -la build/libs/
             exit 1
           fi
