@@ -84,8 +84,15 @@ public class FarmerMixin {
                 .add(Items.BROWN_DYE)
                 .add(Items.GREEN_DYE)
                 .add(Items.RED_DYE)
-                .add(Items.BLACK_DYE)
-                .build();
+				.add(Items.BLACK_DYE)
+				.add(Items.PAPER) // Processed organic material from sugarcane
+				.add(Items.LEATHER) // Animal hide - organic material
+				.add(Items.LEATHER_HELMET)
+				.add(Items.LEATHER_CHESTPLATE)
+				.add(Items.LEATHER_LEGGINGS)
+				.add(Items.LEATHER_BOOTS)
+				.add(Items.LEATHER_HORSE_ARMOR)
+				.build();
         }
     }
     

@@ -106,6 +106,9 @@ public class Compostables implements ModInitializer {
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.RED_DYE, 1.0f); // From poppy, rose bush, etc.
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.BLACK_DYE, 1.0f); // From squid ink or wither rose
 		
+		// Paper (processed from sugarcane - processed organic material)
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.PAPER, 1.0f);
+		
 		// Carpets (wool-based, 100% organic)
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.WHITE_CARPET, 1.0f);
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.ORANGE_CARPET, 1.0f);
@@ -153,7 +156,15 @@ public class Compostables implements ModInitializer {
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.RED_WOOL, 1.0f);
 		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.BLACK_WOOL, 1.0f);
 		
-		LOGGER.info("Registered {} new compostable items", 100);
+		// Leather items (animal hide - 100% organic)
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.LEATHER, 1.0f); // Raw leather
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.LEATHER_HELMET, 1.0f); // Processed leather armor
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.LEATHER_CHESTPLATE, 1.0f); // Processed leather armor
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.LEATHER_LEGGINGS, 1.0f); // Processed leather armor
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.LEATHER_BOOTS, 1.0f); // Processed leather armor
+		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(Items.LEATHER_HORSE_ARMOR, 1.0f); // Processed leather armor
+		
+		LOGGER.info("Registered {} new compostable items", 107);
 	}
 	
 	/**
