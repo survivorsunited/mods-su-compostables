@@ -32,6 +32,40 @@
 4. Fix issues based on runtime errors
 5. Rebuild and test again
 
+## Build and Deployment
+
+### Build System
+- Use Gradle with Fabric toolchain
+- Configuration centralized in `gradle.properties`
+- PowerShell scripts in `/scripts/` directory for automation
+- Always test builds before deployment
+
+### PowerShell Scripts
+- `build.ps1` - Main build script with optional server start
+- `scripts/start-server.ps1` - Advanced server management
+- `scripts/update-modrinth.ps1` - Update Modrinth project description
+- `scripts/generate-web-icons.ps1` - Generate documentation icons
+- `release.ps1` - Automated release script (updates version, creates tag)
+
+### Release Process
+1. Update version in `gradle.properties`
+2. Update documentation with new features
+3. Build and test thoroughly: `.\build.ps1`
+4. Run release script: `.\release.ps1 -Version "X.Y.Z"`
+5. GitHub Actions handles automated publishing to Modrinth and GitHub Releases
+
+### Environment Variables
+- `MODRINTH_TOKEN` - For Modrinth API access
+- `PROJECT_ID` - Modrinth project identifier
+- Set in GitHub repository secrets for CI/CD
+
+### File Patterns to Ignore
+- `/build/` - Gradle build output
+- `/run/` - Development server files
+- `/test-server/` - Test server instance
+- `node_modules/` - NPM dependencies
+- `.gradle/` - Gradle cache
+
 ### Debugging Commands
 ```bash
 # Check for compilation errors

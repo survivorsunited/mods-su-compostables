@@ -1,25 +1,29 @@
 # Compostables Mod Specific Context
 
 ## Mod Overview
-The Compostables mod extends Minecraft's composting functionality by making 40+ organic items compostable that aren't in vanilla. This includes rotten flesh, spider eyes, eggs, meat, fish, soil blocks, and chorus fruits.
+The Compostables mod extends Minecraft's composting functionality by making 107 organic items compostable that aren't in vanilla. This includes rotten flesh, spider eyes, eggs, meat, fish, soil blocks, chorus fruits, leather, leather armor, and paper.
+
+## Project Structure
+- `src/main/java/org/survivorsunited/mods/compostables/` - Main mod code
+- `docs/` - Docusaurus documentation website 
+- `scripts/` - PowerShell build and deployment scripts
+- `gradle.properties` - Centralized mod configuration
 
 ## Current Implementation
 
 ### Main Features
-- 40 new compostable items with balanced chances (10% to 85%)
-- Farmer villagers can collect and compost 28 portable items
+- 107 new compostable items with balanced chances (30% to 100%)
+- Farmer villagers can collect and compost portable items
 - Server-side only (no client mod required)
 - Uses vanilla composter block
 
 ### Compostable Items by Chance
-- **10%**: Dead Bush
-- **20%**: Dirt Path
-- **30%**: Grass Block, Rooted Dirt, Muddy Mangrove Roots, Turtle Egg, Sniffer Egg, Sculk Vein
+- **30%**: Dead Bush, Dirt Path, Grass Block, Rooted Dirt, Muddy Mangrove Roots, Turtle Egg, Sniffer Egg, Sculk Vein
 - **35%**: Bamboo
-- **50%**: Rotten Flesh, Podzol, Chorus Fruit, Chorus Plant, Rabbit's Foot
-- **65%**: Spider Eye, Mycelium, Nylium Blocks, Popped Chorus Fruit, Egg, Raw Meat/Fish (all types)
-- **75%**: Poisonous Potato, Mushroom Stew, Beetroot Soup, Chorus Flower
-- **85%**: Fermented Spider Eye, Cooked Meat/Fish (all types)
+- **50%**: Podzol, Chorus Fruit, Chorus Plant, Rabbit's Foot
+- **65%**: Spider Eye, Mycelium, Nylium Blocks, Popped Chorus Fruit, Egg, Raw Meat/Fish (all types), String
+- **85%**: Poisonous Potato, Chorus Flower
+- **100%**: All meat (raw and cooked), all fish (raw and cooked), all stews, all dyes, all carpets, all wool blocks, all leather items (leather, leather armor pieces, leather horse armor), paper, bone items, bamboo block, rotten flesh, fermented spider eye
 
 ### Technical Implementation
 1. **Item Registration**: Uses `ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE` map
@@ -35,13 +39,36 @@ The Compostables mod extends Minecraft's composting functionality by making 40+ 
 - Mixin package: `org.survivorsunited.mods.compostables.mixin`
 
 ### Key Classes
-- `Compostables.java`: Registers all 40 compostable items
-- `FarmerMixin.java`: Makes farmers collect 28 portable compostable items
+- `Compostables.java`: Registers all 107 compostable items
+- `FarmerMixin.java`: Makes farmers collect portable compostable items
+
+## Development Guidelines
+
+### Java Code Standards
+- Follow existing code style and patterns
+- Use proper Minecraft item names (e.g., "Block of Bamboo" not "Bamboo Block")
+- All composting chances should match the values in Compostables.java:
+  - 30% = 0.3f, 50% = 0.5f, 65% = 0.65f, 85% = 0.85f, 100% = 1.0f
+- Register items using `ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put()`
+- Always log the total count of registered items
+
+### Important Item Names
+- "Block of Bamboo" (not "Bamboo Block")
+- All carpet items: "Color Carpet" (e.g., "White Carpet")
+- All wool items: "Color Wool" (e.g., "White Wool") 
+- All dye items: "Color Dye" (e.g., "White Dye")
+
+### Documentation Updates
+When updating mod items, ensure consistency across:
+- `Compostables.java` (source of truth for percentages)
+- `docs/docs/intro.md` (main documentation)
+- `docs/docs/modrinth.md` (Modrinth project description)
+- `README.md` (if needed)
 
 ### Current Version
-- Mod version: 1.0.0
-- Minecraft: 1.21.5
-- Fabric Loader: 0.16.14+
+- Mod version: 1.0.40
+- Minecraft: 1.21.1+
+- Fabric Loader: 0.16.11+
 
 ### Repository Secrets Required
 - `MODRINTH_TOKEN`: API token from Modrinth account
@@ -52,6 +79,8 @@ The Compostables mod extends Minecraft's composting functionality by making 40+ 
 - Soil blocks can't be picked up by villagers but players can compost them
 - Balanced around vanilla composting rates
 - No configuration file - all values hardcoded for consistency
+- Processed organic materials (paper, leather) are 100% compost chance
+- Leather items include: raw leather, leather helmet, chestplate, leggings, boots, and leather horse armor
 
 ### Mixin Development Guidelines
 When working with mixins in this project:
@@ -79,7 +108,7 @@ When working with mixins in this project:
 
 ### FarmerMixin Implementation Details
 - Injects into VillagerProfession constructor
-- Adds 30+ items to farmer's gatherable items
+- Adds portable compostable items to farmer's gatherable items
 - Uses Text.getString() to identify farmer profession
 - Compatible with Minecraft 1.21.5 API changes
 
