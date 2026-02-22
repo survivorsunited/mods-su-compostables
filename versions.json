@@ -81,7 +81,7 @@
   },
   "1.21.11": {
     "yarn_mappings": "1.21.11+build.4",
-    "loader_version": "0.18.1",
+    "loader_version": "0.18.4",
     "fabric_version": "0.140.2+1.21.11",
     "loom_version": "1.14.1",
     "gradle_version": "9.2.0",
