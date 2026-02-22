@@ -23,8 +23,8 @@ jobs:
       - name: Extract Minecraft versions from versions.json
         id: versions
         run: |
-          # Extract all version keys from versions.json and create JSON array
-          VERSIONS=$(jq -r 'keys | sort | @json' versions.json)
+          # Extract all version keys sorted by version (1.21.1, 1.21.2, ... 1.21.11)
+          VERSIONS=$(jq -r 'keys | sort_by(split(".") | map(tonumber? // 0)) | @json' versions.json)
           echo "matrix=$VERSIONS" >> $GITHUB_OUTPUT
           echo "📦 Found Minecraft versions:"
           echo "$VERSIONS"
@@ -442,8 +442,8 @@ jobs:
           MOD_VERSION="${{ steps.properties.outputs.modVersion }}"
           MOD_NAME="${{ steps.properties.outputs.modName }}"
           
-          # Extract all version keys from versions.json and build them
-          MC_VERSIONS=$(jq -r 'keys | sort | .[]' versions.json)
+          # Extract all version keys sorted by version (1.21.1 ... 1.21.11)
+          MC_VERSIONS=$(jq -r 'keys | sort_by(split(".") | map(tonumber? // 0)) | .[]' versions.json)
           
           for MC_VERSION in $MC_VERSIONS; do
             echo "📦 Building for Minecraft $MC_VERSION"
@@ -561,8 +561,8 @@ jobs:
       - name: Generate game versions list for Modrinth
         id: game_versions
         run: |
-          # Extract all version keys from versions.json and create newline-separated list
-          GAME_VERSIONS=$(jq -r 'keys | sort | .[]' versions.json)
+          # Extract all version keys sorted by version for Modrinth
+          GAME_VERSIONS=$(jq -r 'keys | sort_by(split(".") | map(tonumber? // 0)) | .[]' versions.json)
           echo "versions<<EOF" >> $GITHUB_OUTPUT
           echo "$GAME_VERSIONS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -633,8 +633,8 @@ jobs:
           sed -i "s/^mod_version=.*/mod_version=$NEW_VERSION/" gradle.properties
           echo "📦 Updated mod_version to $NEW_VERSION in gradle.properties"
           
-          # Extract all version keys from versions.json and build them
-          MC_VERSIONS=$(jq -r 'keys | sort | .[]' versions.json)
+          # Extract all version keys sorted by version (1.21.1 ... 1.21.11)
+          MC_VERSIONS=$(jq -r 'keys | sort_by(split(".") | map(tonumber? // 0)) | .[]' versions.json)
           
           for MC_VERSION in $MC_VERSIONS; do
             echo "📦 Building for Minecraft $MC_VERSION with mod version $NEW_VERSION"
@@ -774,8 +774,8 @@ jobs:
       - name: Generate game versions list for Modrinth
         id: game_versions
         run: |
-          # Extract all version keys from versions.json and create newline-separated list
-          GAME_VERSIONS=$(jq -r 'keys | sort | .[]' versions.json)
+          # Extract all version keys sorted by version for Modrinth
+          GAME_VERSIONS=$(jq -r 'keys | sort_by(split(".") | map(tonumber? // 0)) | .[]' versions.json)
           echo "versions<<EOF" >> $GITHUB_OUTPUT
           echo "$GAME_VERSIONS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
