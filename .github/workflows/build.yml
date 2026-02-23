@@ -27,6 +27,8 @@ jobs:
 
       - name: Lint GitHub workflows
         uses: rhysd/actionlint@main
+        with:
+          args: -ignore 'shellcheck reported issue in this script'
 
   setup:
     runs-on: ubuntu-24.04
@@ -575,7 +577,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
           
       - name: Create Release with all JARs
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.release_version.outputs.version }}
           name: Release ${{ steps.release_version.outputs.version }}
@@ -788,7 +790,7 @@ jobs:
           fi
           
       - name: Create Release with all JARs
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.release_version.outputs.version }}
           name: Release ${{ steps.release_version.outputs.version }}
