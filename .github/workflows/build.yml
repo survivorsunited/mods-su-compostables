@@ -28,7 +28,7 @@ jobs:
       - name: Lint GitHub workflows
         uses: rhysd/actionlint@main
         with:
-          args: -ignore 'shellcheck reported issue in this script'
+          args: -ignore=shellcheck
 
   setup:
     runs-on: ubuntu-24.04
