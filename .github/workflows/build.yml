@@ -7,11 +7,27 @@ name: build
 on:
   pull_request:
   push:
-  create:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
 
 # Environment variables will be set dynamically from gradle.properties
 
 jobs:
+  lint-workflows:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Lint GitHub workflows
+        uses: rhysd/actionlint@v1
+
   setup:
     runs-on: ubuntu-24.04
     outputs:
@@ -30,8 +46,9 @@ jobs:
           echo "$VERSIONS"
   
   build-matrix:
-    needs: setup
+    needs: [lint-workflows, setup]
     runs-on: ubuntu-24.04
+    timeout-minutes: 40
     strategy:
       matrix:
         mc_version: ${{ fromJson(needs.setup.outputs.mc_versions) }}
@@ -142,12 +159,18 @@ jobs:
           MC_VERSION="${{ steps.version_config.outputs.mc_version }}"
           JAR_FILE="${{ steps.rename_jar.outputs.jar_file }}"
           LOADER_VERSION="${{ steps.version_config.outputs.loader_version }}"
+          MOD_ID="su-compostables"
           
           echo "🧪 Testing server startup with mod for Minecraft $MC_VERSION"
           
-          # Download Fabric installer
-          FABRIC_INSTALLER_URL="https://maven.fabricmc.net/net/fabricmc/fabric-installer/1.0.0/fabric-installer-1.0.0.jar"
-          curl -L -o fabric-installer.jar "$FABRIC_INSTALLER_URL" || echo "⚠️ Failed to download installer, skipping server test"
+          # Download latest stable Fabric installer
+          INSTALLER_VERSION=$(curl -fsSL "https://meta.fabricmc.net/v2/versions/installer" | jq -r 'map(select(.stable == true))[0].version')
+          if [ -z "$INSTALLER_VERSION" ] || [ "$INSTALLER_VERSION" = "null" ]; then
+            echo "❌ Could not determine a stable Fabric installer version"
+            exit 1
+          fi
+          FABRIC_INSTALLER_URL="https://maven.fabricmc.net/net/fabricmc/fabric-installer/${INSTALLER_VERSION}/fabric-installer-${INSTALLER_VERSION}.jar"
+          curl -fsSL -o fabric-installer.jar "$FABRIC_INSTALLER_URL"
           
           # Create test server directory
           mkdir -p test-server
@@ -158,11 +181,7 @@ jobs:
           java -jar ../fabric-installer.jar server \
             -mcversion "$MC_VERSION" \
             -loader "$LOADER_VERSION" \
-            -downloadMinecraft || {
-            echo "⚠️ Fabric installer failed, skipping server test"
-            cd ..
-            exit 0
-          }
+            -downloadMinecraft
           
           # Copy mod JAR to mods folder
           mkdir -p mods
@@ -183,25 +202,23 @@ jobs:
             sleep 2
             if grep -q "Done" server.log 2>/dev/null; then
               echo "✅ Server started successfully!"
-              # Check if mod loaded (check for any Compostables log message)
-              if grep -qi "compostables" server.log 2>/dev/null; then
+              # Check if our mod id appears in log output
+              if grep -qi "$MOD_ID\|compostables" server.log 2>/dev/null; then
                 echo "✅ Mod loaded successfully!"
                 kill $SERVER_PID 2>/dev/null || true
                 wait $SERVER_PID 2>/dev/null || true
                 cd ..
                 exit 0
               else
-                echo "⚠️ Server started but mod may not have loaded"
-                echo "Searching for mod in logs..."
-                grep -i "compostables\|mod" server.log | tail -n 10 || echo "No mod-related logs found"
+                echo "❌ Server started but mod did not appear in logs"
+                echo "Searching for mod-related lines..."
+                grep -i "compostables\|mod\|fabricloader" server.log | tail -n 25 || echo "No mod-related logs found"
                 echo "Last 50 lines of server.log:"
                 tail -n 50 server.log
                 kill $SERVER_PID 2>/dev/null || true
                 wait $SERVER_PID 2>/dev/null || true
                 cd ..
-                # Don't fail if server started - mod might have loaded but log message different
-                echo "✅ Server started successfully (mod check inconclusive)"
-                exit 0
+                exit 1
               fi
             fi
           done
@@ -214,6 +231,17 @@ jobs:
           wait $SERVER_PID 2>/dev/null || true
           cd ..
           exit 1
+
+      - name: Upload Minecraft server logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-log-${{ steps.version_config.outputs.mc_version }}
+          path: |
+            test-server/server.log
+            test-server/logs/*
+          if-no-files-found: ignore
+          retention-days: 7
 
   build:
     runs-on: ubuntu-24.04
@@ -398,7 +426,7 @@ jobs:
 
   release-manual:
     # Run when a tag is created manually (via release.ps1)
-    if: github.event_name == 'create' && github.event.ref_type == 'tag'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -406,7 +434,7 @@ jobs:
       - name: Determine release version from tag
         id: release_version
         run: |
-          VERSION="${{ github.event.ref }}"
+          VERSION="${{ github.ref_name }}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "📦 Manual release triggered by tag: $VERSION"
       
