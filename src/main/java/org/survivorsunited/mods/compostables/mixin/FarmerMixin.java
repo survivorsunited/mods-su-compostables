@@ -6,7 +6,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.sound.SoundEvent;
-import net.minecraft.text.Text;
 import net.minecraft.village.VillagerProfession;
 import net.minecraft.world.poi.PointOfInterestType;
 import org.spongepowered.asm.mixin.Mixin;
@@ -27,9 +26,9 @@ public class FarmerMixin {
     private ImmutableSet<Item> gatherableItems;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void modifyFarmerGatherables(Text name, Predicate<RegistryEntry<PointOfInterestType>> heldWorkstation, Predicate<RegistryEntry<PointOfInterestType>> acquirableWorkstation, ImmutableSet<Item> gatherableItems, ImmutableSet<Block> secondaryJobSites, SoundEvent workSound, CallbackInfo ci) {
-        // Check if this is the farmer profession by checking the name
-        if (name.getString().equals("Farmer")) {
+    private void modifyFarmerGatherables(String id, Predicate<RegistryEntry<PointOfInterestType>> heldWorkstation, Predicate<RegistryEntry<PointOfInterestType>> acquirableWorkstation, ImmutableSet<Item> gatherableItems, ImmutableSet<Block> secondaryJobSites, SoundEvent workSound, CallbackInfo ci) {
+        // Check if this is the farmer profession by its stable registry id.
+        if (id.equals("farmer")) {
             // Add compostable items to the farmer's gatherable items
             this.gatherableItems = ImmutableSet.<Item>builder()
                 .addAll(gatherableItems)
