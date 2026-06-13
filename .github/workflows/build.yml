@@ -42,7 +42,7 @@ jobs:
         id: versions
         run: |
           # Extract all version keys sorted by version (1.21.1, 1.21.2, ... 1.21.11)
-          VERSIONS=$(jq -r 'keys | sort_by(split(".") | map(tonumber? // 0)) | @json' versions.json)
+          VERSIONS=$(jq -r 'to_entries | map(select(.value.build_enabled != false) | .key) | sort_by(split(".") | map(tonumber? // 0)) | @json' versions.json)
           echo "matrix=$VERSIONS" >> $GITHUB_OUTPUT
           echo "📦 Found Minecraft versions:"
           echo "$VERSIONS"
@@ -239,6 +239,7 @@ jobs:
           retention-days: 7
 
   build:
+    if: github.ref != 'refs/heads/26.1'
     runs-on: ubuntu-24.04
     needs: build-matrix
     steps:

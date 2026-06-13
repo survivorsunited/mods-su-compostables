@@ -86,6 +86,15 @@
     "loom_version": "1.14.1",
     "gradle_version": "9.2.0",
     "java_version": 21
+  },
+  "26.1": {
+    "yarn_mappings": "26.1+build.1",
+    "loader_version": "0.19.3",
+    "fabric_version": "0.145.1+26.1",
+    "loom_version": "1.17.11",
+    "gradle_version": "9.5.0",
+    "java_version": 25,
+    "build_enabled": false,
+    "blocked_reason": "Fabric metadata lists Minecraft 26.1 as stable and Fabric API 0.145.1+26.1 exists, but Yarn mappings for 26.1 are not published yet."
   }
 }
-
