@@ -1,0 +1,100 @@
+name: release-1.21.11
+
+on:
+  push:
+    tags:
+      - "*-1.21.11"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to create, for example 1.0.47-1.21.11"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-1.21.11-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Determine release tag
+        id: release_tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+
+          if [[ "$TAG" != *-1.21.11 ]]; then
+            echo "Tag must end with -1.21.11, got: $TAG" >&2
+            exit 1
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && '1.21.11' || github.ref }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "microsoft"
+
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Make Gradle executable
+        run: chmod +x ./gradlew
+
+      - name: Build Minecraft 1.21.11 jar
+        run: ./gradlew clean build --no-daemon
+
+      - name: Prepare release asset
+        id: asset
+        run: |
+          MOD_VERSION=$(grep "^mod_version=" gradle.properties | cut -d'=' -f2)
+          MOD_NAME=$(grep "^jar_name=" gradle.properties | cut -d'=' -f2)
+          MC_VERSION=$(grep "^minecraft_version=" gradle.properties | cut -d'=' -f2)
+          ORIGINAL_JAR="build/libs/${MOD_NAME}-${MOD_VERSION}.jar"
+          VERSIONED_JAR="build/libs/${MOD_NAME}-${MOD_VERSION}-${MC_VERSION}.jar"
+
+          if [ "$MC_VERSION" != "1.21.11" ]; then
+            echo "Expected minecraft_version=1.21.11, got: $MC_VERSION" >&2
+            exit 1
+          fi
+
+          if [ ! -f "$ORIGINAL_JAR" ]; then
+            echo "Expected jar not found: $ORIGINAL_JAR" >&2
+            ls -la build/libs
+            exit 1
+          fi
+
+          cp "$ORIGINAL_JAR" "$VERSIONED_JAR"
+          echo "jar=$VERSIONED_JAR" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_tag.outputs.tag }}
+          target_commitish: 1.21.11
+          name: Release ${{ steps.release_tag.outputs.tag }}
+          body: |
+            Minecraft 1.21.11 compatibility release.
+
+            Fixes the FarmerMixin startup crash on Minecraft 1.21.11 by matching the current VillagerProfession constructor signature.
+          files: ${{ steps.asset.outputs.jar }}
+          draft: false
+          prerelease: false
+          make_latest: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
