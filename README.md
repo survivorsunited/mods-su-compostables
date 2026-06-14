@@ -2,8 +2,8 @@
 
 [![Modrinth](https://img.shields.io/modrinth/dt/su-compostables?label=Modrinth&logo=modrinth&color=00AF5C)](https://modrinth.com/mod/su-compostables)
 [![GitHub](https://img.shields.io/github/license/survivorsunited/mods-su-compostables?label=License)](https://github.com/survivorsunited/mods-su-compostables/blob/main/LICENSE)
-[![Minecraft Version](https://img.shields.io/badge/Minecraft-1.21.5+-brightgreen)](https://www.minecraft.net/)
-[![Fabric](https://img.shields.io/badge/Fabric-0.16.14+-blue)](https://fabricmc.net/)
+[![Minecraft Version](https://img.shields.io/badge/Minecraft-1.21.1--1.21.11-brightgreen)](https://www.minecraft.net/)
+[![Fabric](https://img.shields.io/badge/Fabric_Loader-0.18.4-blue)](https://fabricmc.net/)
 
 A Minecraft Fabric mod that extends composting functionality by making 107 additional organic items compostable, including meat, dyes, stews, carpets, wool, leather, paper, bones, and other processed organic materials. All block items (carpets, wool blocks, grass blocks, etc.) can now be properly composted instead of being placed as blocks.
 
@@ -26,7 +26,7 @@ Visit our **[Wiki](https://survivorsunited.github.io/mods-su-compostables/docs/i
 .\build.ps1 -StartServer
 
 # Build and start test server with specific version
-.\build.ps1 -StartServer -MinecraftVersion "1.21.8"
+.\build.ps1 -StartServer -MinecraftVersion "1.21.11"
 ```
 
 ### Requirements

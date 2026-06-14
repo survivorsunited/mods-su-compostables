@@ -3,7 +3,7 @@
 
 param(
     [switch]$StartServer,
-    [string]$MinecraftVersion = "1.21.5"
+    [string]$MinecraftVersion = "1.21.11"
 )
 
 # Set the correct JDK 21 path
@@ -13,100 +13,124 @@ $env:Path = "$jdkPath\bin;" + $env:Path
 
 Write-Host "JAVA_HOME set to $jdkPath" -ForegroundColor Green
 
-# Minecraft Server Download Map
-$MinecraftServerDownloadMap = @{
-    "1.21.1" = "https://piston-data.mojang.com/v1/objects/59353fb40c36d304f2035d51e7d6e6baa98dc05c/server.jar"
-    "1.21.2" = "https://piston-data.mojang.com/v1/objects/7bf95409b0d9b5388bfea3704ec92012d273c14c/server.jar"
-    "1.21.3" = "https://piston-data.mojang.com/v1/objects/45810d238246d90e811d896f87b14695b7fb6839/server.jar"
-    "1.21.4" = "https://piston-data.mojang.com/v1/objects/4707d00eb834b446575d89a61a11b5d548d8c001/server.jar"
-    "1.21.5" = "https://piston-data.mojang.com/v1/objects/6e64dcabba3c01a7271b4fa6bd898483b794c59b/server.jar"
-    "1.21.6" = "https://piston-data.mojang.com/v1/objects/e6ec2f64e6080b9b5d9b471b291c33cc7f509733/server.jar"
-    "1.21.7" = "https://piston-data.mojang.com/v1/objects/05e4b48fbc01f0385adb74bcff9751d34552486c/server.jar"
-    "1.21.8" = "https://piston-data.mojang.com/v1/objects/6bce4ef400e4efaa63a13d5e6f6b500be969ef81/server.jar"
-    "1.21.9" = "https://piston-data.mojang.com/v1/objects/11e54c2081420a4d49db3007e66c80a22579ff2a/server.jar"
-    "1.21.10" = "https://piston-data.mojang.com/v1/objects/95495a7f485eedd84ce928cef5e223b757d2f764/server.jar"
+$repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$versionsConfig = Get-Content -Raw (Join-Path $repoRoot "versions.json") | ConvertFrom-Json
+$supportedVersions = $versionsConfig.PSObject.Properties.Name | Sort-Object { [version]$_ }
+
+if ($MinecraftVersion -notin $supportedVersions) {
+    Write-Host "❌ Unsupported Minecraft version: $MinecraftVersion" -ForegroundColor Red
+    Write-Host "Supported versions: $($supportedVersions -join ', ')" -ForegroundColor Yellow
+    exit 1
 }
 
-# Fabric Loader Download Map
-$FabricLoaderDownloadMap = @{
-    "1.21.1" = "https://meta.fabricmc.net/v2/versions/loader/1.21.1/0.16.11/1.0.3/server/jar"
-    "1.21.2" = "https://meta.fabricmc.net/v2/versions/loader/1.21.2/0.16.12/1.0.3/server/jar"
-    "1.21.3" = "https://meta.fabricmc.net/v2/versions/loader/1.21.3/0.16.13/1.0.3/server/jar"
-    "1.21.4" = "https://meta.fabricmc.net/v2/versions/loader/1.21.4/0.16.13/1.0.3/server/jar"
-    "1.21.5" = "https://meta.fabricmc.net/v2/versions/loader/1.21.5/0.16.14/1.0.3/server/jar"
-    "1.21.6" = "https://meta.fabricmc.net/v2/versions/loader/1.21.6/0.16.14/1.0.3/server/jar"
-    "1.21.7" = "https://meta.fabricmc.net/v2/versions/loader/1.21.7/0.17.3/1.1.0/server/jar"
-    "1.21.8" = "https://meta.fabricmc.net/v2/versions/loader/1.21.8/0.17.3/1.1.0/server/jar"
-    "1.21.9" = "https://meta.fabricmc.net/v2/versions/loader/1.21.9/0.17.3/1.1.0/server/jar"
-    "1.21.10" = "https://meta.fabricmc.net/v2/versions/loader/1.21.10/0.17.3/1.1.0/server/jar"
+$versionConfig = $versionsConfig.$MinecraftVersion
+
+function Set-BuildConfiguration {
+    param(
+        [string]$Version,
+        [psobject]$Config
+    )
+
+    $wrapperPath = Join-Path $repoRoot "gradle/wrapper/gradle-wrapper.properties"
+    $wrapperUrl = "https://services.gradle.org/distributions/gradle-$($Config.gradle_version)-bin.zip" -replace ':', '\:'
+    (Get-Content $wrapperPath) -replace 'distributionUrl=.*', "distributionUrl=$wrapperUrl" | Set-Content $wrapperPath
+
+    $gradlePropertiesPath = Join-Path $repoRoot "gradle.properties"
+    $gradleProperties = Get-Content $gradlePropertiesPath -Raw
+    $gradleProperties = $gradleProperties -replace 'minecraft_version=.*', "minecraft_version=$Version"
+    $gradleProperties = $gradleProperties -replace 'yarn_mappings=.*', "yarn_mappings=$($Config.yarn_mappings)"
+    $gradleProperties = $gradleProperties -replace 'fabric_loader_version=.*', "fabric_loader_version=$($Config.loader_version)"
+    $gradleProperties = $gradleProperties -replace 'fabric_version=.*', "fabric_version=$($Config.fabric_version)"
+    $gradleProperties = $gradleProperties -replace 'loom_version=.*', "loom_version=$($Config.loom_version)"
+    Set-Content $gradlePropertiesPath -Value $gradleProperties -NoNewline
 }
 
-# Fabric API Download Map
-$FabricApiDownloadMap = @{
-    "1.21.1" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/fabric-api-0.124.0%2B1.21.1.jar"
-    "1.21.2" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/fabric-api-0.125.0%2B1.21.2.jar"
-    "1.21.3" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/fabric-api-0.125.5%2B1.21.3.jar"
-    "1.21.4" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/fabric-api-0.125.5%2B1.21.4.jar"
-    "1.21.5" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/vNBWcMLP/fabric-api-0.127.1%2B1.21.5.jar"
-    "1.21.6" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/F5TVHWcE/fabric-api-0.128.2%2B1.21.6.jar"
-    "1.21.7" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/JntuF9Ul/fabric-api-0.129.0%2B1.21.7.jar"
-    "1.21.8" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/g58ofrov/fabric-api-0.136.1%2B1.21.8.jar"
-    "1.21.9" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/iHrvVvaM/fabric-api-0.134.0%2B1.21.9.jar"
-    "1.21.10" = "https://cdn.modrinth.com/data/P7dR8mSH/versions/dQ3p80zK/fabric-api-0.138.3%2B1.21.10.jar"
+function Get-MinecraftServerUrl {
+    param([string]$Version)
+
+    $manifest = Invoke-RestMethod -Uri "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
+    $versionInfo = $manifest.versions | Where-Object { $_.id -eq $Version } | Select-Object -First 1
+
+    if (-not $versionInfo) {
+        throw "Unable to find Minecraft server metadata for version $Version"
+    }
+
+    $versionManifest = Invoke-RestMethod -Uri $versionInfo.url
+    return $versionManifest.downloads.server.url
 }
+
+function Get-FabricInstallerVersion {
+    $installers = Invoke-RestMethod -Uri "https://meta.fabricmc.net/v2/versions/installer"
+    $stableInstaller = $installers | Where-Object { $_.stable } | Select-Object -First 1
+
+    if ($stableInstaller) {
+        return $stableInstaller.version
+    }
+
+    return ($installers | Select-Object -First 1).version
+}
+
+function Get-FabricLoaderUrl {
+    param(
+        [string]$Version,
+        [string]$LoaderVersion
+    )
+
+    $installerVersion = Get-FabricInstallerVersion
+    return "https://meta.fabricmc.net/v2/versions/loader/$Version/$LoaderVersion/$installerVersion/server/jar"
+}
+
+function Get-FabricApiUrl {
+    param([string]$FabricApiVersion)
+
+    return "https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/$FabricApiVersion/fabric-api-$FabricApiVersion.jar"
+}
+
+Set-BuildConfiguration -Version $MinecraftVersion -Config $versionConfig
 
 # Build the mod
 Write-Host "🔨 Building mod..." -ForegroundColor Cyan
+Push-Location $repoRoot
 ./gradlew build
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Build failed!" -ForegroundColor Red
+    Pop-Location
     exit 1
 }
 
 Write-Host "✅ Build successful!" -ForegroundColor Green
+Pop-Location
 
 # Start server if requested
 if ($StartServer) {
     Write-Host "🚀 Starting test server..." -ForegroundColor Cyan
     
     # Create server directory
-    $serverDir = "test-server"
+    $serverDir = Join-Path $repoRoot "test-server"
     if (-not (Test-Path $serverDir)) {
         New-Item -ItemType Directory -Path $serverDir | Out-Null
         Write-Host "📁 Created server directory: $serverDir" -ForegroundColor Green
     }
     
-    Set-Location $serverDir
+    Push-Location $serverDir
     
     # Download Minecraft server if not exists
     $minecraftServerJar = "server.jar"
     if (-not (Test-Path $minecraftServerJar)) {
-        $serverUrl = $MinecraftServerDownloadMap[$MinecraftVersion]
-        if ($serverUrl) {
-            Write-Host "📥 Downloading Minecraft server $MinecraftVersion..." -ForegroundColor Yellow
-            Invoke-WebRequest -Uri $serverUrl -OutFile $minecraftServerJar
-            Write-Host "✅ Minecraft server downloaded" -ForegroundColor Green
-        } else {
-            Write-Host "❌ Unknown Minecraft version: $MinecraftVersion" -ForegroundColor Red
-            Set-Location ..
-            exit 1
-        }
+        $serverUrl = Get-MinecraftServerUrl -Version $MinecraftVersion
+        Write-Host "📥 Downloading Minecraft server $MinecraftVersion..." -ForegroundColor Yellow
+        Invoke-WebRequest -Uri $serverUrl -OutFile $minecraftServerJar
+        Write-Host "✅ Minecraft server downloaded" -ForegroundColor Green
     }
     
     # Download Fabric server launcher if not exists
     $fabricServerJar = "fabric-server-launch.jar"
     if (-not (Test-Path $fabricServerJar)) {
-        $fabricUrl = $FabricLoaderDownloadMap[$MinecraftVersion]
-        if ($fabricUrl) {
-            Write-Host "📥 Downloading Fabric server launcher $MinecraftVersion..." -ForegroundColor Yellow
-            Invoke-WebRequest -Uri $fabricUrl -OutFile $fabricServerJar
-            Write-Host "✅ Fabric server launcher downloaded" -ForegroundColor Green
-        } else {
-            Write-Host "❌ Unknown Fabric version for Minecraft: $MinecraftVersion" -ForegroundColor Red
-            Set-Location ..
-            exit 1
-        }
+        $fabricUrl = Get-FabricLoaderUrl -Version $MinecraftVersion -LoaderVersion $versionConfig.loader_version
+        Write-Host "📥 Downloading Fabric server launcher $MinecraftVersion..." -ForegroundColor Yellow
+        Invoke-WebRequest -Uri $fabricUrl -OutFile $fabricServerJar
+        Write-Host "✅ Fabric server launcher downloaded" -ForegroundColor Green
     }
     
     # Create mods directory and copy built mod
@@ -119,29 +143,23 @@ if ($StartServer) {
     # Download Fabric API if not exists
     $fabricApiJar = "fabric-api.jar"
     if (-not (Test-Path "$modsDir/$fabricApiJar")) {
-        $fabricApiUrl = $FabricApiDownloadMap[$MinecraftVersion]
-        if ($fabricApiUrl) {
-            Write-Host "📥 Downloading Fabric API for $MinecraftVersion..." -ForegroundColor Yellow
-            Invoke-WebRequest -Uri $fabricApiUrl -OutFile "$modsDir/$fabricApiJar"
-            Write-Host "✅ Fabric API downloaded" -ForegroundColor Green
-        } else {
-            Write-Host "❌ Unknown Fabric API version for Minecraft: $MinecraftVersion" -ForegroundColor Red
-            Set-Location ..
-            exit 1
-        }
+        $fabricApiUrl = Get-FabricApiUrl -FabricApiVersion $versionConfig.fabric_version
+        Write-Host "📥 Downloading Fabric API for $MinecraftVersion..." -ForegroundColor Yellow
+        Invoke-WebRequest -Uri $fabricApiUrl -OutFile "$modsDir/$fabricApiJar"
+        Write-Host "✅ Fabric API downloaded" -ForegroundColor Green
     } else {
         Write-Host "✅ Fabric API already exists in mods directory" -ForegroundColor Green
     }
     
     # Find and copy the built mod JAR
-    $modJars = Get-ChildItem -Path "../build/libs" -Filter "*.jar" | Where-Object { $_.Name -notlike "*-sources.jar" }
+    $modJars = Get-ChildItem -Path (Join-Path $repoRoot "build/libs") -Filter "*.jar" | Where-Object { $_.Name -notlike "*-sources.jar" }
     if ($modJars.Count -gt 0) {
         $modJar = $modJars[0]
         Copy-Item $modJar.FullName -Destination "$modsDir/$($modJar.Name)" -Force
         Write-Host "📦 Copied mod JAR: $($modJar.Name)" -ForegroundColor Green
     } else {
         Write-Host "❌ No mod JAR found in build/libs" -ForegroundColor Red
-        Set-Location ..
+        Pop-Location
         exit 1
     }
     
@@ -252,7 +270,7 @@ enable-command-block=true
             Remove-Job $job -ErrorAction SilentlyContinue
         }
         Remove-Item "stop_command.txt" -ErrorAction SilentlyContinue
-        Set-Location ..
+        Pop-Location
         Write-Host "`n🛑 Server stopped" -ForegroundColor Yellow
     }
 } 
