@@ -21,7 +21,7 @@ This document explains how to build the Compostables mod, test it locally, and m
 .\build.ps1 -StartServer
 
 # Build and start test server with specific Minecraft version
-.\build.ps1 -StartServer -MinecraftVersion "1.21.8"
+.\build.ps1 -StartServer -MinecraftVersion "1.21.11"
 ```
 
 **Linux/Mac:**
@@ -204,17 +204,17 @@ Configured for potential Maven repository publishing (currently no repositories 
 
 All mod properties are centralized in `gradle.properties`:
 
-- **Minecraft Version**: `minecraft_version=1.21.5`
+- **Minecraft Version**: `minecraft_version=1.21.11`
 - **Mod Version**: `mod_version=1.0.10`
 - **Fabric Versions**: Loader, API, Loom versions
 - **Mod Metadata**: Name, description, author, etc.
 
-To build for a different Minecraft version, update `gradle.properties`:
+To build for a different Minecraft version, update `gradle.properties` (or use `build.ps1 -MinecraftVersion`):
 ```properties
-minecraft_version=1.21.8
-yarn_mappings=1.21.8+build.1
-fabric_loader_version=0.17.3
-fabric_version=0.134.0+1.21.8
+minecraft_version=1.21.11
+yarn_mappings=1.21.11+build.4
+fabric_loader_version=0.18.4
+fabric_version=0.140.2+1.21.11
 ```
 
 **Property Categories:**
@@ -245,13 +245,7 @@ fabric_version=0.134.0+1.21.8
 
 ### Supported Minecraft Versions
 
-The `build.ps1` script supports testing with these Minecraft versions:
-- **1.21.5** (default)
-- **1.21.6**
-- **1.21.7**
-- **1.21.8**
-- **1.21.9**
-- **1.21.10**
+The `build.ps1` script supports every version defined in `versions.json` (currently **1.21.1** through **1.21.11**), with **1.21.11** as the default local build target.
 
 The mod is built for the version specified in `gradle.properties`, but you can test it on any supported version using the `-MinecraftVersion` parameter.
 
@@ -273,11 +267,11 @@ The `build.ps1` script provides a convenient way to build and test the mod local
 # Build only
 .\build.ps1
 
-# Build and start test server (default: 1.21.5)
+# Build and start test server (default: 1.21.11)
 .\build.ps1 -StartServer
 
 # Build and start test server with specific version
-.\build.ps1 -StartServer -MinecraftVersion "1.21.8"
+.\build.ps1 -StartServer -MinecraftVersion "1.21.11"
 ```
 
 **What it does:**
@@ -325,7 +319,7 @@ cd test-server
 
 2. **Start test server:**
    ```powershell
-   .\build.ps1 -StartServer -MinecraftVersion "1.21.8"
+   .\build.ps1 -StartServer -MinecraftVersion "1.21.11"
    ```
 
 3. **Check server logs:**
@@ -365,7 +359,7 @@ The `.github/workflows/build.yml` workflow provides comprehensive CI/CD automati
 #### Jobs Overview
 
 1. **`build-matrix`**: Parallel builds for all supported Minecraft versions
-   - Runs 6 parallel jobs (one per Minecraft version: 1.21.5-1.21.10)
+   - Runs parallel jobs for every supported Minecraft version in `versions.json`
    - Each job builds, tests, and uploads a versioned JAR artifact
    - Includes server startup tests to verify mod loads correctly
    - JARs are renamed with Minecraft version: `{mod_name}-{mod_version}-{mc_version}.jar`
@@ -375,7 +369,7 @@ The `.github/workflows/build.yml` workflow provides comprehensive CI/CD automati
    - Runs tests and validates build
 
 3. **`release-manual`**: Full release process (triggered by tag creation)
-   - Builds all 6 Minecraft versions sequentially
+   - Builds all supported Minecraft versions sequentially
    - Collects all versioned JARs
    - Creates GitHub Release with all artifacts
    - Publishes to Modrinth
@@ -389,7 +383,7 @@ The `.github/workflows/build.yml` workflow provides comprehensive CI/CD automati
 The `release-manual` job builds the mod for all supported Minecraft versions:
 
 1. **Version Configuration**: Reads `versions.json` for each Minecraft version's dependencies
-2. **Sequential Builds**: For each version (1.21.5-1.21.10):
+2. **Sequential Builds**: For each supported version in `versions.json`:
    - Updates Gradle wrapper to version-specific Gradle version
    - Updates `gradle.properties` with version-specific settings
    - Cleans build directory (preserving previously built JARs)
@@ -397,9 +391,9 @@ The `release-manual` job builds the mod for all supported Minecraft versions:
    - Copies built JAR to `build/libs-all/` with version suffix
 3. **JAR Collection**: After all builds complete:
    - Moves all versioned JARs from `build/libs-all/` to `build/libs/`
-   - Validates all 6 JARs are present
-4. **Release Creation**: Creates GitHub Release with all 6 artifacts
-5. **Modrinth Publishing**: Uploads all 6 JARs to Modrinth
+   - Validates all expected JARs are present
+4. **Release Creation**: Creates GitHub Release with all versioned artifacts
+5. **Modrinth Publishing**: Uploads all versioned JARs to Modrinth
 
 #### Version Configuration
 
@@ -407,12 +401,12 @@ The `versions.json` file defines dependencies for each Minecraft version:
 
 ```json
 {
-  "1.21.5": {
-    "yarn_mappings": "1.21.5+build.1",
-    "loader_version": "0.16.14",
-    "fabric_version": "0.126.0+1.21.5",
-    "loom_version": "1.10-SNAPSHOT",
-    "gradle_version": "8.14",
+  "1.21.11": {
+    "yarn_mappings": "1.21.11+build.4",
+    "loader_version": "0.18.4",
+    "fabric_version": "0.140.2+1.21.11",
+    "loom_version": "1.14.1",
+    "gradle_version": "9.2.0",
     "java_version": 21
   },
   ...
@@ -446,7 +440,7 @@ The release process is fully automated using the `release.ps1` script:
 **After tag push:**
 - GitHub Actions detects the tag creation event
 - `release-manual` job starts automatically
-- Builds all 6 Minecraft versions (takes ~5-10 minutes)
+- Builds all supported Minecraft versions (takes ~5-10 minutes)
 - Creates GitHub Release with all artifacts
 - Publishes to Modrinth
 
@@ -472,14 +466,7 @@ git push origin "1.0.33"
 
 #### Release Artifacts
 
-Each release includes 6 JAR files, one for each supported Minecraft version:
-
-- `su-compostables-{mod_version}-1.21.5.jar`
-- `su-compostables-{mod_version}-1.21.6.jar`
-- `su-compostables-{mod_version}-1.21.7.jar`
-- `su-compostables-{mod_version}-1.21.8.jar`
-- `su-compostables-{mod_version}-1.21.9.jar`
-- `su-compostables-{mod_version}-1.21.10.jar`
+Each release includes one JAR per supported Minecraft version from `versions.json` (currently **11** files, covering **1.21.1** through **1.21.11**).
 
 All artifacts are:
 - Attached to the GitHub Release
@@ -567,7 +554,7 @@ The pipeline validates:
 
 ### Build Fails with Java Version Error
 
-**Error**: `Minecraft 1.21.5 requires Java 21 but Gradle is using 17`
+**Error**: `Minecraft 1.21.11 requires Java 21 but Gradle is using 17`
 
 **Solution:**
 - Ensure Java 21 is installed
@@ -640,10 +627,10 @@ To build for a different Minecraft version:
 
 1. Update `gradle.properties`:
    ```properties
-   minecraft_version=1.21.8
-   yarn_mappings=1.21.8+build.1
-   fabric_loader_version=0.17.3
-   fabric_version=0.134.0+1.21.8
+   minecraft_version=1.21.11
+   yarn_mappings=1.21.11+build.4
+   fabric_loader_version=0.18.4
+   fabric_version=0.140.2+1.21.11
    ```
 
 2. Build:
@@ -653,7 +640,7 @@ To build for a different Minecraft version:
 
 3. Test:
    ```powershell
-   .\build.ps1 -StartServer -MinecraftVersion "1.21.8"
+   .\build.ps1 -StartServer -MinecraftVersion "1.21.11"
    ```
 
 ## Project Structure
@@ -723,7 +710,7 @@ This automatically:
 
 - **Format**: `{major}.{minor}.{patch}` (e.g., `1.0.33`)
 - **Tags**: Use version without "v" prefix (`1.0.33` not `v1.0.33`)
-- **JARs**: Include Minecraft version suffix (`su-compostables-1.0.33-1.21.8.jar`)
+- **JARs**: Include Minecraft version suffix (`su-compostables-1.0.33-1.21.11.jar`)
 
 ### Version History
 
