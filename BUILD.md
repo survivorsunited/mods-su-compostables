@@ -405,7 +405,7 @@ The `versions.json` file defines dependencies for each Minecraft version:
     "yarn_mappings": "1.21.11+build.4",
     "loader_version": "0.18.4",
     "fabric_version": "0.140.2+1.21.11",
-    "loom_version": "1.14.1",
+    "loom_version": "1.14.8",
     "gradle_version": "9.2.0",
     "java_version": 21
   },
